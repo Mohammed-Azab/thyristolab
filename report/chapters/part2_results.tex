@@ -1,0 +1,289 @@
+\section{Part II: Results and Analysis}
+
+\subsection{Half-Wave Rectifier Results}
+
+\subsubsection{Resistive Load}
+
+\paragraph{Waveforms:}
+\TODO{Insert waveforms for different firing angles}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_R_alpha30.png}
+        \caption{$\alpha = 30°$}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_R_alpha90.png}
+        \caption{$\alpha = 90°$}
+    \end{subfigure}
+    \caption{Half-wave rectifier with resistive load - voltage and current waveforms}
+    \label{fig:hw_R_waveforms}
+\end{figure}
+
+\paragraph{Performance Metrics:}
+\TODO{Fill in measured values}
+
+\begin{table}[H]
+\centering
+\caption{Half-Wave Rectifier with R Load - Performance Metrics}
+\label{tab:hw_R_metrics}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+\textbf{$\alpha$ (°)} & \textbf{$V_{dc}$ (V)} & \textbf{$I_{dc}$ (A)} & \textbf{$V_{rms}$ (V)} & \textbf{$I_{rms}$ (A)} & \textbf{FF} \\ \midrule
+0 & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+30 & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+60 & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+90 & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+120 & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Observations:}
+\TODO{List key observations:}
+\begin{itemize}
+    \item Current and voltage in phase (resistive load)
+    \item Discontinuous current
+    \item Average voltage decreases with increasing $\alpha$
+    \item Current follows voltage exactly (scaled by R)
+\end{itemize}
+
+\subsubsection{RL Load}
+
+\paragraph{Waveforms:}
+\TODO{Insert waveforms showing current lag and possible continuous conduction}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_RL_alpha30.png}
+        \caption{$\alpha = 30°$}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_RL_alpha90.png}
+        \caption{$\alpha = 90°$}
+    \end{subfigure}
+    \caption{Half-wave rectifier with RL load}
+    \label{fig:hw_RL_waveforms}
+\end{figure}
+
+\paragraph{Extinction Angle Analysis:}
+\TODO{Create table showing extinction angles}
+
+\begin{table}[H]
+\centering
+\caption{Extinction Angle for RL Load}
+\label{tab:extinction_angle}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{$\alpha$ (°)} & \textbf{$\beta$ (°)} & \textbf{Conduction Angle (°)} \\ \midrule
+0 & \TODO{} & \TODO{} \\
+30 & \TODO{} & \TODO{} \\
+60 & \TODO{} & \TODO{} \\
+90 & \TODO{} & \TODO{} \\
+120 & \TODO{} & \TODO{} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Current Continuity:}
+\TODO{Identify CCM vs DCM regions:}
+\begin{itemize}
+    \item For $\alpha < $ \TODO{XX°}: Continuous conduction
+    \item For $\alpha > $ \TODO{XX°}: Discontinuous conduction
+\end{itemize}
+
+\subsubsection{Highly Inductive Load}
+
+\paragraph{Waveforms:}
+\TODO{Insert waveforms showing continuous current and negative voltage}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_L_alpha60.png}
+        \caption{$\alpha = 60°$}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_L_alpha120.png}
+        \caption{$\alpha = 120°$}
+    \end{subfigure}
+    \caption{Half-wave rectifier with highly inductive load}
+    \label{fig:hw_L_waveforms}
+\end{figure}
+
+\paragraph{Key Observations:}
+\TODO{Highlight important phenomena:}
+\begin{itemize}
+    \item Continuous current (nearly constant)
+    \item Output voltage can be negative while current is positive
+    \item Occurs when $\alpha > 90°$
+    \item Represents regenerative operation (Quadrant II)
+\end{itemize}
+
+\subsubsection{Effect of Free-Wheeling Diode}
+
+\paragraph{Comparison:}
+\TODO{Show side-by-side comparison with and without FWD}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_RL_no_FWD.png}
+        \caption{Without FWD}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\textwidth}
+        % \includegraphics[width=\textwidth]{hw_RL_with_FWD.png}
+        \caption{With FWD}
+    \end{subfigure}
+    \caption{Effect of free-wheeling diode on RL load ($\alpha = 60°$)}
+    \label{fig:fwd_effect}
+\end{figure}
+
+\paragraph{Performance Comparison:}
+\TODO{Create comparison table}
+
+\begin{table}[H]
+\centering
+\caption{Effect of Free-Wheeling Diode on Performance}
+\label{tab:fwd_comparison}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Without FWD} & \textbf{With FWD} & \textbf{Change} \\ \midrule
+$V_{dc}$ (V) & \TODO{} & \TODO{} & \TODO{} \\
+$I_{dc}$ (A) & \TODO{} & \TODO{} & \TODO{} \\
+Ripple Factor & \TODO{} & \TODO{} & \TODO{} \\
+Min. Voltage (V) & \TODO{negative} & 0 & - \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Full-Wave Center-Tapped Rectifier Results}
+
+\subsubsection{Comparison with Half-Wave}
+\TODO{Show how full-wave improves performance}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{fw_ct_vs_hw_comparison.png}
+    \caption{Comparison of half-wave and full-wave center-tapped rectifier waveforms}
+    \label{fig:hw_vs_fw_ct}
+\end{figure}
+
+\subsubsection{Performance Metrics for Different Loads}
+\TODO{Create comprehensive table}
+
+\begin{table}[H]
+\centering
+\caption{Full-Wave CT Rectifier Performance ($\alpha = 60°$)}
+\label{tab:fw_ct_performance}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Load Type} & \textbf{$V_{dc}$ (V)} & \textbf{$I_{dc}$ (A)} & \textbf{RF (\%)} & \textbf{Conduction} \\ \midrule
+R & \TODO{} & \TODO{} & \TODO{} & Discontinuous \\
+RL & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+Highly L & \TODO{} & \TODO{} & \TODO{} & Continuous \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Full-Wave Bridge Rectifier Results}
+
+\subsubsection{Waveforms}
+\TODO{Insert representative waveforms for each load type}
+
+\subsubsection{Comparison with Center-Tapped}
+\TODO{Compare the two full-wave configurations}
+
+\begin{table}[H]
+\centering
+\caption{Center-Tapped vs. Bridge Configuration ($\alpha = 60°$, RL Load)}
+\label{tab:ct_vs_bridge}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Center-Tapped} & \textbf{Bridge} \\ \midrule
+$V_{dc}$ (V) & \TODO{} & \TODO{} \\
+$I_{dc}$ (A) & \TODO{} & \TODO{} \\
+Number of SCRs & 2 & 4 \\
+Transformer & Center-tapped & Standard \\
+Voltage drop & $\sim 1 \times V_T$ & $\sim 2 \times V_T$ \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Average Voltage vs. Firing Angle}
+
+\subsubsection{Theoretical vs. Simulated Results}
+\TODO{Create plot comparing theory and simulation}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{vdc_vs_alpha_all_configs.png}
+    \caption{Average output voltage vs. firing angle for all configurations}
+    \label{fig:vdc_vs_alpha}
+\end{figure}
+
+\subsubsection{Validation}
+\TODO{Create error analysis table}
+
+\begin{table}[H]
+\centering
+\caption{Comparison of Analytical and Simulated Results}
+\label{tab:validation}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Configuration} & \textbf{$\alpha$ (°)} & \textbf{$V_{dc,theory}$ (V)} & \textbf{$V_{dc,sim}$ (V)} & \textbf{Error (\%)} \\ \midrule
+Half-Wave & 30 & \TODO{} & \TODO{} & \TODO{} \\
+Half-Wave & 60 & \TODO{} & \TODO{} & \TODO{} \\
+Full-Wave CT & 30 & \TODO{} & \TODO{} & \TODO{} \\
+Full-Wave CT & 60 & \TODO{} & \TODO{} & \TODO{} \\
+Full-Wave Bridge & 30 & \TODO{} & \TODO{} & \TODO{} \\
+Full-Wave Bridge & 60 & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Thyristor Voltage and Current}
+
+\subsubsection{Voltage Stress}
+\TODO{Show thyristor voltage waveforms}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.7\textwidth]{thyristor_voltage.png}
+    \caption{Thyristor voltage waveform showing forward blocking, conduction, and reverse blocking}
+    \label{fig:thyristor_voltage}
+\end{figure}
+
+\paragraph{Key Observations:}
+\TODO{Analyze thyristor voltage stress:}
+\begin{itemize}
+    \item Peak forward voltage: \TODO{XX V}
+    \item Peak reverse voltage: \TODO{XX V}
+    \item Voltage during conduction: \TODO{XX V}
+\end{itemize}
+
+\subsubsection{Current Waveforms}
+\TODO{Show thyristor current for different load types}
+
+\subsection{Power Analysis}
+
+\subsubsection{Power Factor}
+\TODO{Calculate and present power factor results}
+
+\begin{table}[H]
+\centering
+\caption{Power Factor for Different Configurations and Firing Angles}
+\label{tab:power_factor}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Configuration} & \textbf{$\alpha$ (°)} & \textbf{Load Type} & \textbf{PF} \\ \midrule
+Half-Wave & 30 & R & \TODO{} \\
+Half-Wave & 60 & R & \TODO{} \\
+Half-Wave & 30 & RL & \TODO{} \\
+Full-Wave & 30 & R & \TODO{} \\
+Full-Wave & 60 & RL & \TODO{} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Efficiency}
+\TODO{Calculate efficiency considering component losses}

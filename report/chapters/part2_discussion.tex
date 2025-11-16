@@ -1,0 +1,310 @@
+\section{Part II: Discussion}
+
+\subsection{Load Type Effects}
+
+\subsubsection{Resistive Load Behavior}
+\TODO{Discuss why resistive loads are simplest:}
+\begin{itemize}
+    \item No energy storage - current follows voltage
+    \item Always discontinuous conduction
+    \item Simple analysis and predictable behavior
+    \item Applications: heaters, incandescent lighting
+\end{itemize}
+
+\subsubsection{Inductive Load Challenges}
+\TODO{Explain complexities introduced by inductance:}
+\begin{itemize}
+    \item Current lag and extended conduction
+    \item Possibility of continuous conduction
+    \item Extinction angle depends on both $\alpha$ and load parameters
+    \item More complex analysis required
+\end{itemize}
+
+\subsubsection{Highly Inductive Load Characteristics}
+\TODO{Discuss special case of high inductance:}
+\begin{itemize}
+    \item Nearly constant current (ideal current source)
+    \item Always continuous conduction
+    \item Voltage can be negative with positive current
+    \item Important for DC motor drives
+    \item Enables four-quadrant operation
+\end{itemize}
+
+\subsection{Current Continuity}
+
+\subsubsection{Factors Affecting Continuity}
+\TODO{Analyze what determines CCM vs DCM:}
+\begin{enumerate}
+    \item \textbf{Inductance value:} Higher L favors continuous conduction
+    \item \textbf{Load resistance:} Lower R (higher $\tau = L/R$) favors CCM
+    \item \textbf{Firing angle:} Smaller $\alpha$ favors CCM
+    \item \textbf{Rectifier type:} Full-wave more likely to have CCM than half-wave
+\end{enumerate}
+
+\subsubsection{Importance of Conduction Mode}
+\TODO{Explain why this matters:}
+\begin{itemize}
+    \item Different equations for CCM vs DCM
+    \item Affects average voltage and current
+    \item Impacts harmonic content
+    \item Relevant for control system design
+\end{itemize}
+
+\subsection{Four-Quadrant Operation Analysis}
+
+\subsubsection{Negative Voltage with Positive Current}
+\TODO{Detailed explanation of this phenomenon:}
+
+Physical interpretation:
+\begin{itemize}
+    \item Occurs when $\alpha > 90°$ with inductive load
+    \item Inductor stores energy when voltage is positive
+    \item Releases energy when voltage tries to go negative
+    \item Current continues flowing in same direction
+    \item Net power flow is from load back to source
+\end{itemize}
+
+\TODO{Insert your observation from simulations showing this}
+
+Applications:
+\begin{itemize}
+    \item Regenerative braking in motor drives
+    \item Energy recovery systems
+    \item Four-quadrant DC drives
+\end{itemize}
+
+\subsubsection{Power Flow Analysis}
+\TODO{Analyze power flow in different operating regions:}
+
+\begin{table}[H]
+\centering
+\caption{Power Flow vs. Firing Angle}
+\label{tab:power_flow}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Firing Angle Range} & \textbf{Avg. Voltage} & \textbf{Power Flow} \\ \midrule
+$0° < \alpha < 90°$ & Positive & Source to Load (Motoring) \\
+$\alpha = 90°$ & Zero & No net power \\
+$90° < \alpha < 180°$ & Negative & Load to Source (Regeneration) \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Free-Wheeling Diode Impact}
+
+\subsubsection{Advantages}
+\TODO{List benefits observed in simulations:}
+\begin{enumerate}
+    \item \textbf{Improved output voltage:}
+    \begin{itemize}
+        \item Eliminates negative voltage
+        \item Higher average voltage
+        \item Better voltage waveform
+    \end{itemize}
+    
+    \item \textbf{Reduced ripple:}
+    \begin{itemize}
+        \item Smoother current
+        \item Lower harmonic content
+        \item Better for sensitive loads
+    \end{itemize}
+    
+    \item \textbf{Load protection:}
+    \begin{itemize}
+        \item Provides path for inductive current
+        \item Prevents voltage spikes
+        \item Safer operation
+    \end{itemize}
+    
+    \item \textbf{Improved efficiency:}
+    \begin{itemize}
+        \item Reduces losses during freewheeling
+        \item Better for motor drives
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Disadvantages}
+\TODO{Mention limitations:}
+\begin{itemize}
+    \item Additional component cost
+    \item Eliminates regenerative capability (cannot operate in Quadrant II)
+    \item Not suitable when bidirectional power flow is needed
+\end{itemize}
+
+\subsubsection{When to Use FWD}
+\TODO{Provide guidelines:}
+
+Use free-wheeling diode when:
+\begin{itemize}
+    \item Load is inductive (motors, solenoids)
+    \item Unidirectional power flow is acceptable
+    \item Improved voltage waveform is desired
+    \item Cost of additional diode is acceptable
+\end{itemize}
+
+Do not use FWD when:
+\begin{itemize}
+    \item Regenerative operation is required
+    \item Four-quadrant capability needed
+    \item Operating in inverter mode ($\alpha > 90°$)
+\end{itemize}
+
+\subsection{Configuration Comparison}
+
+\subsubsection{Half-Wave vs. Full-Wave}
+\TODO{Comprehensive comparison based on results:}
+
+\begin{table}[H]
+\centering
+\caption{Half-Wave vs. Full-Wave Rectifier Comparison}
+\label{tab:hw_vs_fw}
+\begin{tabular}{@{}p{4cm}p{5cm}p{5cm}@{}}
+\toprule
+\textbf{Aspect} & \textbf{Half-Wave} & \textbf{Full-Wave} \\ \midrule
+Average Voltage & Lower (factor of 2 difference) & Higher \\
+Ripple Frequency & $f$ (line frequency) & $2f$ (double) \\
+Ripple Amplitude & Higher & Lower \\
+Transformer Utilization & Poor (DC component) & Better \\
+Efficiency & Lower & Higher \\
+Component Count & Fewer & More \\
+Cost & Lower & Higher \\
+Applications & Low power, cost-sensitive & General purpose, higher power \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Center-Tapped vs. Bridge}
+\TODO{Detailed comparison:}
+
+\paragraph{Center-Tapped Advantages:}
+\begin{itemize}
+    \item \TODO{Only 2 thyristors vs. 4}
+    \item \TODO{Lower semiconductor conduction losses per cycle}
+    \item \TODO{Simpler gate drive (only 2 channels)}
+    \item \TODO{Better for lower voltage applications}
+\end{itemize}
+
+\paragraph{Center-Tapped Disadvantages:}
+\begin{itemize}
+    \item \TODO{Requires center-tapped transformer (more expensive)}
+    \item \TODO{Poorer transformer utilization}
+    \item \TODO{Each half of transformer only used 50\% of time}
+    \item \TODO{Larger transformer size}
+\end{itemize}
+
+\paragraph{Bridge Advantages:}
+\begin{itemize}
+    \item \TODO{Standard transformer (widely available, lower cost)}
+    \item \TODO{Better transformer utilization}
+    \item \TODO{More common in industrial applications}
+    \item \TODO{Easier to find replacement components}
+\end{itemize}
+
+\paragraph{Bridge Disadvantages:}
+\begin{itemize}
+    \item \TODO{Requires 4 thyristors (higher component cost)}
+    \item \TODO{Two thyristors in series during conduction (higher drop)}
+    \item \TODO{More complex gate drive (4 channels)}
+    \item \TODO{Higher total semiconductor losses}
+\end{itemize}
+
+\subsection{Firing Circuit Design}
+
+\subsubsection{Synchronization Importance}
+\TODO{Discuss why proper synchronization is critical:}
+\begin{itemize}
+    \item Must be synchronized with AC supply
+    \item Zero-crossing detection required
+    \item Phase-locked loop in practical implementations
+    \item Errors in synchronization cause waveform distortion
+\end{itemize}
+
+\subsubsection{Pulse Width Selection}
+\TODO{Explain considerations for gate pulse width:}
+\begin{itemize}
+    \item Must be long enough for thyristor to latch
+    \item Minimum width determined by thyristor latching current and time
+    \item For resistive loads: pulse until current builds up
+    \item For inductive loads: shorter pulse sufficient once current flowing
+    \item Typical range: \TODO{e.g., 1-10 ms}
+\end{itemize}
+
+\subsubsection{Practical Implementation Challenges}
+\TODO{Discuss real-world considerations:}
+\begin{itemize}
+    \item Isolation between power and control circuits
+    \item Noise immunity
+    \item Gate current requirements
+    \item Protection against misfiring
+    \item Temperature effects on firing angle
+\end{itemize}
+
+\subsection{Harmonic Analysis}
+
+\subsubsection{Input Current Harmonics}
+\TODO{Discuss harmonic content:}
+\begin{itemize}
+    \item Non-sinusoidal input current
+    \item Presence of harmonics (3rd, 5th, 7th, etc.)
+    \item Total Harmonic Distortion (THD)
+    \item Impact on power quality
+    \item Need for filtering
+\end{itemize}
+
+\subsubsection{Output Voltage Harmonics}
+\TODO{Analyze output spectrum:}
+\begin{itemize}
+    \item Dominant harmonics for half-wave: $f$, $2f$, $3f$, ...
+    \item Dominant harmonics for full-wave: $2f$, $4f$, $6f$, ...
+    \item Impact on load performance
+    \item Filtering requirements
+\end{itemize}
+
+\subsection{Practical Applications}
+
+\subsubsection{DC Motor Drives}
+\TODO{Discuss application to motor control:}
+\begin{itemize}
+    \item Variable speed control via firing angle
+    \item Regenerative braking using $\alpha > 90°$
+    \item Importance of continuous conduction
+    \item Armature current control
+\end{itemize}
+
+\subsubsection{Battery Charging}
+\TODO{Connect to Part I:}
+\begin{itemize}
+    \item Battery acts as EMF load (similar to highly inductive)
+    \item Continuous conduction desirable
+    \item Control of charging current via firing angle
+    \item Multi-stage charging profiles
+\end{itemize}
+
+\subsubsection{Industrial Heating}
+\TODO{Discuss resistive load applications:}
+\begin{itemize}
+    \item Power control for heating elements
+    \item Simple phase control
+    \item No need for continuous conduction
+    \item Cost-effective solution
+\end{itemize}
+
+\subsection{Limitations and Assumptions}
+
+\subsubsection{Simulation Assumptions}
+\TODO{Acknowledge simulation limitations:}
+\begin{itemize}
+    \item Ideal or simplified component models
+    \item Perfect synchronization assumed
+    \item Neglected stray inductances and capacitances
+    \item Ideal gate drive
+    \item No thermal effects
+\end{itemize}
+
+\subsubsection{Real-World Considerations}
+\TODO{Factors not fully captured:}
+\begin{itemize}
+    \item Supply voltage variations
+    \item Component tolerances
+    \item Temperature effects
+    \item Aging and degradation
+    \item EMI/EMC issues
+\end{itemize}

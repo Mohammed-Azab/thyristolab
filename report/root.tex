@@ -1,0 +1,231 @@
+\documentclass[12pt,a4paper]{article}
+
+% ==================== PACKAGES ====================
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{circuitikz}
+\usepackage{enumitem}
+
+% ==================== PAGE SETUP ====================
+\geometry{
+    a4paper,
+    left=2.5cm,
+    right=2.5cm,
+    top=3cm,
+    bottom=3cm
+}
+
+% ==================== HYPERLINKS ====================
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    citecolor=blue,
+    pdftitle={Power Electronics I - Course Project},
+    pdfauthor={Your Name},
+    pdfsubject={Controlled Rectifiers},
+    pdfkeywords={Power Electronics, Rectifiers, Thyristors, Battery Charger}
+}
+
+% ==================== HEADERS AND FOOTERS ====================
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{Power Electronics I - Course Project}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{German University in Cairo}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ==================== CODE LISTINGS ====================
+\lstset{
+    language=Matlab,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    backgroundcolor=\color{gray!10},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=4,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={(*@}{@*)},
+    xleftmargin=0.5cm,
+    xrightmargin=0.5cm
+}
+
+% ==================== GRAPHICS PATH ====================
+\graphicspath{{figures/}}
+
+% ==================== CUSTOM COMMANDS ====================
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO: #1}}}
+
+% ==================== DOCUMENT INFO ====================
+\title{
+    \textbf{Power Electronics I} \\
+    \Large{Course Project Report} \\
+    \large{Controlled Rectifiers for Battery Charging and Load Analysis}
+}
+
+\author{
+    \textbf{Student Name:} Your Name \\
+    \textbf{Student ID:} Your ID \\
+    \textbf{Program:} Your Program \\
+    \\
+    German University in Cairo (GUC) \\
+    Faculty of Engineering \\
+    \\
+    \textbf{Course Instructor:} Dr.-Ing. Moustafa Adly
+}
+
+\date{Fall Semester 2025 \\ \today}
+
+% ==================== DOCUMENT BEGIN ====================
+\begin{document}
+
+% Title Page
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+% Table of Contents
+\tableofcontents
+\newpage
+
+% List of Figures
+\listoffigures
+\newpage
+
+% List of Tables
+\listoftables
+\newpage
+
+% ==================== MAIN CONTENT ====================
+
+\section{Abstract}
+\TODO{Write a brief abstract (150-200 words) summarizing the project objectives, methodology, key findings, and conclusions. Mention both Part I (battery charger design) and Part II (load analysis).}
+
+\newpage
+
+% ==================== PART I ====================
+\input{chapters/part1_introduction}
+\input{chapters/part1_theory}
+\input{chapters/part1_design}
+\input{chapters/part1_results}
+\input{chapters/part1_discussion}
+
+\newpage
+
+% ==================== PART II ====================
+\input{chapters/part2_introduction}
+\input{chapters/part2_theory}
+\input{chapters/part2_simulation}
+\input{chapters/part2_results}
+\input{chapters/part2_discussion}
+
+\newpage
+
+% ==================== CONCLUSION ====================
+\input{chapters/conclusion}
+
+\newpage
+
+% ==================== REFERENCES ====================
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+% If not using BibTeX, you can manually add references:
+\begin{thebibliography}{99}
+
+\TODO{Add your references here. Examples below:}
+
+\bibitem{ref1}
+Author Name, ``Title of Paper,'' \textit{Journal Name}, vol. X, no. Y, pp. Z-Z, Month Year.
+
+\bibitem{ref2}
+Author Name, \textit{Book Title}, Edition. City: Publisher, Year.
+
+\bibitem{matlab}
+MathWorks, ``MATLAB Documentation,'' [Online]. Available: https://www.mathworks.com/help/matlab/
+
+\bibitem{simulink}
+MathWorks, ``Simulink Documentation,'' [Online]. Available: https://www.mathworks.com/help/simulink/
+
+\end{thebibliography}
+
+\newpage
+
+% ==================== APPENDICES ====================
+\appendix
+
+\section{MATLAB Code}
+\label{app:matlab_code}
+
+\subsection{Half-Wave Rectifier Battery Charger}
+\TODO{Include your MATLAB code for the half-wave rectifier function}
+\begin{lstlisting}
+% Paste your half_wave_charger.m code here
+\end{lstlisting}
+
+\subsection{Full-Wave Center-Tapped Rectifier Battery Charger}
+\TODO{Include your MATLAB code for the center-tapped rectifier function}
+\begin{lstlisting}
+% Paste your full_wave_ct_charger.m code here
+\end{lstlisting}
+
+\subsection{Full-Wave Bridge Rectifier Battery Charger}
+\TODO{Include your MATLAB code for the bridge rectifier function}
+\begin{lstlisting}
+% Paste your full_wave_bridge_charger.m code here
+\end{lstlisting}
+
+\subsection{Analytical Calculation Scripts}
+\TODO{Include any additional analytical scripts used for Part II}
+
+\newpage
+
+\section{Simulink Models}
+\label{app:simulink}
+
+\TODO{Include screenshots or block diagrams of your Simulink models:}
+\begin{itemize}
+    \item Half-wave controlled rectifier with different loads
+    \item Full-wave center-tapped rectifier
+    \item Full-wave bridge rectifier
+    \item Firing circuit designs
+\end{itemize}
+
+\newpage
+
+\section{Additional Results}
+\label{app:additional_results}
+
+\TODO{Include any additional plots, tables, or analysis not covered in the main body}
+
+\end{document}

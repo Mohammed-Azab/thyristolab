@@ -1,0 +1,144 @@
+\section{Part I: Design and Implementation}
+
+\subsection{Design Specifications}
+\TODO{List all design specifications for your battery charger:}
+
+\begin{table}[H]
+\centering
+\caption{Battery Charger Design Specifications}
+\label{tab:design_specs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\ \midrule
+Supply Voltage (RMS) & \TODO{e.g., 230} & V \\
+Supply Frequency & \TODO{e.g., 50} & Hz \\
+Battery Voltage & \TODO{e.g., 12} & V \\
+Battery Capacity & \TODO{e.g., 50} & Ah \\
+Internal Resistance & \TODO{e.g., 0.1} & $\Omega$ \\
+Desired Charging Time & \TODO{e.g., 5} & hours \\
+Initial SoC & \TODO{e.g., 20} & \% \\
+Target SoC & \TODO{e.g., 80} & \% \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{MATLAB Function Design}
+
+\subsubsection{Function Architecture}
+\TODO{Explain the overall structure of your MATLAB functions:}
+\begin{itemize}
+    \item Input parameter handling and validation
+    \item Main calculation loop
+    \item Firing angle sweep methodology
+    \item Charging time calculation algorithm
+    \item Output generation (plots, results)
+\end{itemize}
+
+\subsubsection{Algorithm Flowchart}
+\TODO{Create and insert flowchart showing:}
+\begin{itemize}
+    \item Input parameters
+    \item Initialization
+    \item Firing angle iteration
+    \item Time-domain simulation or analytical calculation
+    \item SoC update (if applicable)
+    \item Convergence check
+    \item Output generation
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.6\textwidth]{algorithm_flowchart.png}
+    \caption{Algorithm flowchart for battery charger analysis}
+    \label{fig:algorithm_flowchart}
+\end{figure}
+
+\subsection{Half-Wave Rectifier Implementation}
+
+\subsubsection{Function Signature}
+\TODO{Document your function signature:}
+\begin{lstlisting}
+function [alpha_array, charging_time, SoC_final, P_loss] = ...
+    half_wave_charger(Vrms, f, Vbat, Rbat, capacity, varargin)
+\end{lstlisting}
+
+\subsubsection{Key Implementation Details}
+\TODO{Explain how you implemented:}
+\begin{enumerate}
+    \item Calculation of average charging current for each firing angle
+    \item Integration of current over time to determine charge delivered
+    \item Relationship between firing angle and charging time
+    \item Optional: Thyristor loss calculation
+    \item Optional: SoC tracking
+\end{enumerate}
+
+\subsubsection{Mathematical Equations Used}
+\TODO{List the specific equations implemented in code}
+
+For firing angle $\alpha$, the average charging current is:
+\begin{equation}
+    I_{dc} = \frac{1}{2\pi R_{batt}} \int_{\alpha}^{\pi} (V_m \sin\theta - E_{batt}) d\theta
+\end{equation}
+
+Charging time for desired SoC change:
+\begin{equation}
+    t_{charge} = \frac{\Delta Q}{I_{dc}} = \frac{Q_{capacity} \cdot \Delta SoC}{I_{dc}}
+\end{equation}
+
+\subsection{Full-Wave Center-Tapped Implementation}
+
+\subsubsection{Function Signature}
+\TODO{Document your function signature}
+
+\subsubsection{Key Differences from Half-Wave}
+\TODO{Explain the modifications:}
+\begin{itemize}
+    \item Integration limits (0 to $\pi$ instead of $\alpha$ to $\pi$ per cycle)
+    \item Factor of 2 in frequency (two pulses per cycle)
+    \item Modified voltage equations
+\end{itemize}
+
+\subsection{Full-Wave Bridge Implementation}
+
+\subsubsection{Function Signature}
+\TODO{Document your function signature}
+
+\subsubsection{Implementation Notes}
+\TODO{Explain:}
+\begin{itemize}
+    \item Similarity to center-tapped configuration
+    \item Any differences in implementation
+    \item Consideration of multiple thyristor drops (if modeling non-idealities)
+\end{itemize}
+
+\subsection{Optional Features Implementation}
+
+\subsubsection{Thyristor Non-Idealities}
+\TODO{If implemented, explain how you modeled:}
+\begin{itemize}
+    \item Forward voltage drop: $V_T \approx $ \TODO{typical value 1-2V}
+    \item Reverse leakage current: $I_{leak} \approx $ \TODO{typical value in $\mu$A}
+    \item Switching times: rise time, fall time
+    \item Loss calculation methodology
+\end{itemize}
+
+Average power loss per thyristor:
+\begin{equation}
+    P_{loss,thyristor} = \TODO{Derive based on conduction time and forward drop}
+\end{equation}
+
+\subsubsection{State of Charge Tracking}
+\TODO{If implemented, explain:}
+\begin{itemize}
+    \item How SoC is updated during charging
+    \item Impact of SoC on battery voltage
+    \item Termination criteria for charging
+\end{itemize}
+
+\subsection{Validation and Testing}
+\TODO{Describe how you validated your functions:}
+\begin{itemize}
+    \item Test cases used
+    \item Comparison with theoretical values
+    \item Boundary condition checks (e.g., $\alpha = 0°$, $\alpha = 90°$)
+    \item Physical plausibility of results
+\end{itemize}

@@ -1,0 +1,242 @@
+\section{Part II: Simulation and Methodology}
+
+\subsection{Simulation Parameters}
+
+\subsubsection{Supply Specifications}
+\TODO{List the supply parameters used:}
+
+\begin{table}[H]
+\centering
+\caption{Supply Parameters}
+\label{tab:supply_params}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\ \midrule
+Supply Voltage (RMS) & 230 & V \\
+Frequency & 50 & Hz \\
+Phase & Single-phase & - \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Load Specifications}
+\TODO{Define the load parameters for each load type:}
+
+\begin{table}[H]
+\centering
+\caption{Load Parameters}
+\label{tab:load_params}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Load Type} & \textbf{R ($\Omega$)} & \textbf{L (H)} & \textbf{L/R (ms)} \\ \midrule
+Resistive & \TODO{e.g., 10} & 0 & 0 \\
+RL Load & \TODO{e.g., 10} & \TODO{e.g., 0.05} & \TODO{e.g., 5} \\
+Highly Inductive & \TODO{e.g., 5} & \TODO{e.g., 0.5} & \TODO{e.g., 100} \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Thyristor Parameters}
+\TODO{Specify thyristor parameters used in simulation:}
+
+\begin{table}[H]
+\centering
+\caption{Thyristor Parameters}
+\label{tab:thyristor_params}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\ \midrule
+Forward voltage drop & \TODO{e.g., 1.5} & V \\
+On-state resistance & \TODO{e.g., 0.01} & $\Omega$ \\
+Snubber resistance & \TODO{e.g., 100} & $\Omega$ \\
+Snubber capacitance & \TODO{e.g., 0.1} & $\mu$F \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Simulink Model Development}
+
+\subsubsection{Half-Wave Controlled Rectifier Model}
+
+\paragraph{Circuit Components:}
+\TODO{List and describe each component in your Simulink model:}
+\begin{itemize}
+    \item AC Voltage Source (230V RMS, 50 Hz)
+    \item Thyristor (from Simscape Electrical)
+    \item Load (R, RL, or highly inductive)
+    \item Firing circuit (Pulse Generator)
+    \item Free-wheeling diode (optional, for comparison)
+    \item Measurement blocks (Voltage Sensor, Current Sensor)
+    \item Scope blocks for visualization
+\end{itemize}
+
+\paragraph{Block Diagram:}
+\TODO{Insert screenshot or diagram of your Simulink model}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{half_wave_simulink.png}
+    \caption{Half-wave controlled rectifier Simulink model}
+    \label{fig:half_wave_simulink}
+\end{figure}
+
+\paragraph{Firing Circuit Design:}
+\TODO{Explain your firing circuit implementation:}
+\begin{itemize}
+    \item Synchronization method with AC source
+    \item Firing angle adjustment mechanism
+    \item Pulse width selection
+    \item Pulse amplitude (gate current)
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.7\textwidth]{firing_circuit.png}
+    \caption{Firing circuit implementation}
+    \label{fig:firing_circuit}
+\end{figure}
+
+\subsubsection{Full-Wave Center-Tapped Rectifier Model}
+
+\paragraph{Circuit Modifications:}
+\TODO{Explain differences from half-wave model:}
+\begin{itemize}
+    \item Center-tapped transformer implementation
+    \item Two thyristors with separate firing circuits
+    \item Phase shift between firing pulses (180°)
+    \item Load connection
+\end{itemize}
+
+\paragraph{Block Diagram:}
+\TODO{Insert screenshot}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{full_wave_ct_simulink.png}
+    \caption{Full-wave center-tapped rectifier Simulink model}
+    \label{fig:full_wave_ct_simulink}
+\end{figure}
+
+\subsubsection{Full-Wave Bridge Rectifier Model}
+
+\paragraph{Circuit Components:}
+\TODO{Describe bridge configuration:}
+\begin{itemize}
+    \item Four thyristors
+    \item Firing signal pairing (T1-T3 and T2-T4)
+    \item No center-tapped transformer needed
+\end{itemize}
+
+\paragraph{Block Diagram:}
+\TODO{Insert screenshot}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{full_wave_bridge_simulink.png}
+    \caption{Full-wave bridge rectifier Simulink model}
+    \label{fig:full_wave_bridge_simulink}
+\end{figure}
+
+\subsection{Simulation Setup}
+
+\subsubsection{Solver Configuration}
+\TODO{Document solver settings:}
+\begin{itemize}
+    \item Solver type: \TODO{e.g., ode23tb (stiff/TR-BDF2)}
+    \item Max step size: \TODO{e.g., auto or 1e-5}
+    \item Relative tolerance: \TODO{e.g., 1e-3}
+    \item Absolute tolerance: \TODO{e.g., 1e-6}
+    \item Simulation time: \TODO{e.g., 0.1 sec (5 cycles)}
+\end{itemize}
+
+\subsubsection{Measurement and Visualization}
+\TODO{Describe how measurements are taken:}
+\begin{itemize}
+    \item Voltage measurement points
+    \item Current measurement points
+    \item Scope configuration for waveform display
+    \item Data export to MATLAB workspace
+\end{itemize}
+
+\subsection{Analytical Calculation Scripts}
+
+\subsubsection{Purpose}
+\TODO{Explain what the analytical scripts calculate:}
+\begin{itemize}
+    \item Theoretical average and RMS values
+    \item Comparison with simulation results
+    \item Validation of simulation accuracy
+\end{itemize}
+
+\subsubsection{Script Structure}
+\TODO{Outline your MATLAB analytical scripts:}
+
+\begin{lstlisting}
+% Example structure
+function [Vdc, Vrms, Idc, Irms] = analytical_half_wave_R(Vs, f, alpha, R)
+    % Calculate theoretical values
+    % ...
+end
+\end{lstlisting}
+
+\subsection{Experimental Procedure}
+
+\subsubsection{Test Cases}
+\TODO{Define your systematic test procedure:}
+
+\paragraph{Firing Angle Sweep:}
+Test firing angles: $\alpha = $ \TODO{e.g., 0°, 30°, 60°, 90°, 120°, 150°}
+
+\paragraph{Load Type Variation:}
+For each firing angle, test:
+\begin{enumerate}
+    \item Resistive load
+    \item RL load
+    \item Highly inductive load
+\end{enumerate}
+
+\paragraph{Configuration Comparison:}
+For each load type and firing angle:
+\begin{enumerate}
+    \item Half-wave rectifier
+    \item Full-wave center-tapped rectifier
+    \item Full-wave bridge rectifier
+\end{enumerate}
+
+\paragraph{Free-Wheeling Diode Study:}
+For RL loads, compare:
+\begin{enumerate}
+    \item Without free-wheeling diode
+    \item With free-wheeling diode
+\end{enumerate}
+
+\subsubsection{Data Collection}
+\TODO{Describe what data you collect for each test:}
+\begin{itemize}
+    \item Output voltage waveform
+    \item Output current waveform
+    \item Thyristor voltage waveform
+    \item Thyristor current waveform
+    \item Average output voltage
+    \item RMS output voltage
+    \item Average output current
+    \item RMS output current
+    \item Extinction angle (for discontinuous mode)
+\end{itemize}
+
+\subsection{Validation}
+
+\subsubsection{Comparison with Analytical Results}
+\TODO{Describe validation procedure:}
+\begin{itemize}
+    \item Calculate theoretical values using derived equations
+    \item Compare with simulation results
+    \item Calculate percentage error
+    \item Acceptable error threshold: \TODO{e.g., < 5\%}
+\end{itemize}
+
+\subsubsection{Physical Plausibility Checks}
+\TODO{List checks performed:}
+\begin{itemize}
+    \item Current never negative for unidirectional devices
+    \item Average voltage decreases with increasing firing angle
+    \item Energy conservation (for ideal components)
+    \item Correct phase relationships
+\end{itemize}
