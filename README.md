@@ -1,154 +1,303 @@
-# Repo Name
+# ThyristoLab - Thyristor Rectifier Analysis & Design Toolkit
 
-## Project Overview
+[![MATLAB](https://img.shields.io/badge/MATLAB-R2020a+-orange.svg)](https://www.mathworks.com/products/matlab.html)
+[![Simulink](https://img.shields.io/badge/Simulink-Power%20Systems-blue.svg)](https://www.mathworks.com/products/simulink.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This repository contains the implementation and analysis of controlled rectifier circuits for battery charging applications and various load conditions. The project is divided into two root parts:
+> **A comprehensive MATLAB/Simulink toolkit for analyzing, designing, and simulating thyristor-based controlled rectifier circuits**
 
-### Part I: Design of Battery Charger using Controlled Rectifiers
+ThyristoLab provides engineers and researchers with powerful analytical tools and pre-built simulation models for controlled rectifier analysis. Whether you're designing battery chargers, DC motor drives, or power supplies, this toolkit offers validated functions and customizable Simulink models to accelerate your development process.
 
-Design and simulate battery charger circuits using thyristor-based controlled rectifiers with analytical MATLAB functions.
+---
 
-### Part II: Analysis and Simulation of Controlled Rectifiers for Various Load Conditions
+## Features
 
-Comprehensive Simulink simulation and analysis of controlled rectifiers under different load types (R, RL, and highly inductive loads).
+###  Battery Charger Design Tools
+- **Analytical MATLAB Functions** for rapid prototyping and optimization
+- Three rectifier topologies: half-wave, full-wave center-tapped, and bridge
+- Firing angle optimization for charging profiles
+- State of Charge (SoC) tracking and power loss analysis
+- Comparative performance analysis across configurations
+
+###  Load Analysis & Simulation
+- **Pre-built Simulink Models** for detailed waveform analysis
+- Support for multiple load types: resistive (R), inductive (RL), and highly inductive
+- Study of continuous and discontinuous conduction modes
+- Free-wheeling diode analysis and four-quadrant operation
+- Comprehensive firing circuit implementations
+
+### Analysis Capabilities
+- Average and RMS voltage/current calculations
+- Form factor and ripple factor analysis
+- Extinction angle determination
+- Power factor and efficiency metrics
+- Theoretical vs. simulation validation
 
 ---
 
 ## Repository Structure
 
 ```
-matlab/
-├── battery_charger/                     # Part I: Battery Charger Design
-│   └── matlab/                          # MATLAB analytical functions
-│       ├── half_wave_charger.m          # Half-wave rectifier implementation
-│       ├── full_wave_ct_charger.m       # Center-tapped full-wave rectifier
-│       └── full_wave_bridge_charger.m   # Bridge full-wave rectifier
+thyristolab/
+├── battery_charger/              # Battery charging analysis tools
+│   └── matlab/                   # Analytical functions
+│       ├── half_wave_charger.m
+│       ├── full_wave_ct_charger.m
+│       ├── full_wave_bridge_charger.m
+│       └── compare_rectifier_configs.m
 │
-├── load_analysis/                       # Part II: Load Analysis
-│   ├── simulink/                        # Simulink models
-│   │   ├── half_wave_rectifier/         # Half-wave configurations
-│   │   ├── full_wave_ct/                # Center-tapped configurations
-│   │   └── full_wave_bridge/            # Bridge configurations
-│   └── matlab/                          # Analytical calculation scripts
+├── load_analysis/                # Load behavior analysis
+│   ├── simulink/                 # Simulation models
+│   │   ├── half_wave_rectifier/
+│   │   ├── full_wave_ct/
+│   │   └── full_wave_bridge/
+│   └── matlab/                   # Post-processing scripts
 │
-├── report/                              # LaTeX report files
-│   ├── root.tex                         # main report document
-│   └── figures/                         # Generated figures and plots
+├── report/                       # Documentation templates
+│   ├── root.tex                  # LaTeX report template
+│   ├── chapters/                 # Individual sections
+│   └── figures/                  # Generated plots
 │
-└── docs/                                # Additional documentation
+└── docs/                         # Additional documentation
 ```
 
 ---
 
-## Project Objectives
+## Quick Start
 
-- Simulate half-wave and full-wave controlled rectifiers using thyristors (SCRs)
-- Analyze the influence of firing angle on average and RMS output voltage/current
-- Compare performance of different rectifier configurations
-- Investigate EMF load performance
-- Develop reusable MATLAB functions for battery charger design
-- Simulate controlled rectifiers with various load types
-- Study the effect of different loads (R, RL, highly inductive) on waveforms
-- Analyze firing angle influence on output characteristics
-- Determine the role of free-wheeling diodes
-- Compare half-wave and full-wave rectifier configurations
+### Installation
 
----
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/thyristolab.git
+   cd thyristolab
+   ```
 
-## Requirements
+2. **Requirements**
+   - MATLAB R2020a or later
+   - Simulink with Simscape Electrical (Power Systems Toolbox)
+   - (Optional) LaTeX distribution for documentation
 
-### Software
-- **MATLAB** R2020a or later
-- **Simulink** with Power Systems Toolbox
-- **LaTeX Distribution** (TeX Live, MiKTeX, or MacTeX)
-- **TeXstudio** (recommended LaTeX editor)
+### Basic Usage
 
-### MATLAB Toolboxes
-- Simulink
-- Simscape Electrical (Power Systems)
-
----
-
-## Getting Started
-
-### 1. Clone the Repository
-```bash
-git clone <repository-url>
-cd matlab
-```
-
-### 2. Part I: Battery Charger Design
-Navigate to `battery_charger/matlab/` and run the MATLAB functions:
-
+#### Battery Charger Analysis
 ```matlab
-% Example: Half-wave rectifier
-Vrms = 230;           % Supply voltage (RMS)
-f = 50;               % Frequency (Hz)
-Vbat = 12;            % Battery voltage (V)
-Rbat = 0.1;           % Internal resistance (Ohm)
-capacity = 50;        % Battery capacity (Ah)
+% Navigate to battery charger tools
+cd battery_charger/matlab
 
-% Call the function
-half_wave_charger(Vrms, f, Vbat, Rbat, capacity);
+% Define system parameters
+Vrms = 230;        % Supply voltage (RMS) [V]
+f = 50;            % Frequency [Hz]
+Vbat = 12;         % Battery voltage [V]
+Rbat = 0.1;        % Internal resistance [Ω]
+capacity = 50;     % Battery capacity [Ah]
+
+% Analyze half-wave rectifier
+[alpha, charging_time] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity);
+
+% Compare all configurations
+compare_rectifier_configs(Vrms, f, Vbat, Rbat, capacity);
 ```
 
-### 3. Part II: Load Analysis
-Open Simulink models in `load_analysis/simulink/`:
-
+#### Load Analysis (Simulink)
 ```matlab
 % Open Simulink
 simulink
-% Navigate to models and run simulations
+
+% Navigate to load_analysis/simulink/
+% Open desired model (e.g., half_wave_rectifier/)
+% Run simulation and analyze waveforms
 ```
 
-### 4. Generate Report
-Navigate to `report/` and compile the LaTeX document:
+---
 
-```bash
-cd report
-pdflatex root.tex
-bibtex root
-pdflatex root.tex
-pdflatex root.tex
+## Documentation
+
+### Battery Charger Functions
+
+All charger functions support the following interface:
+
+**Inputs:**
+- `Vrms` - Supply voltage RMS value [V]
+- `f` - Supply frequency [Hz]
+- `Vbat` - Battery nominal voltage [V]
+- `Rbat` - Battery internal resistance [Ω]
+- `capacity` - Battery capacity [Ah]
+
+**Optional Parameters (Name-Value pairs):**
+- `'t_charge'` - Charging time [sec]
+- `'SoC_init'` - Initial State of Charge [%] (default: 20)
+- `'Vt'` - Thyristor forward voltage drop [V] (default: 0)
+- `'Ileak'` - Thyristor reverse leakage current [A] (default: 0)
+
+**Outputs:**
+- `alpha_deg` - Array of firing angles [degrees]
+- `charging_time_hours` - Corresponding charging times [hours]
+- `SoC_final` - Final State of Charge [%] (optional)
+- `P_loss_avg` - Average power losses [W] (optional)
+
+### Simulink Models
+
+Pre-configured models for:
+- **Half-wave rectifiers** with R, RL, and highly inductive loads
+- **Full-wave center-tapped** configurations
+- **Full-wave bridge** configurations
+- **Free-wheeling diode** variants
+
+Each model includes:
+- Configurable firing angle control
+- Voltage and current measurement points
+- Scope displays for real-time visualization
+- Data export capabilities for post-processing
+
+Detailed setup instructions available in `load_analysis/simulink/README.md`
+
+---
+
+## Use Cases
+
+### Power Electronics Design
+- Battery charging system optimization
+- DC motor drive analysis
+- Industrial power supply design
+- Renewable energy converter development
+
+### Education & Research
+- Power electronics course projects
+- Rectifier behavior demonstration
+- Load type impact studies
+- Firing angle control strategies
+
+### Validation & Testing
+- Compare theoretical calculations with simulation
+- Verify hardware designs before implementation
+- Analyze edge cases and failure modes
+- Optimize control parameters
+
+---
+
+## Technical Background
+
+### Supported Rectifier Topologies
+
+#### 1. Half-Wave Controlled Rectifier
+- Single thyristor configuration
+- Average voltage: `Vdc = (Vm/2π)(1 + cos α)`
+- Lower cost, higher ripple
+- Suitable for low-power applications
+
+#### 2. Full-Wave Center-Tapped Rectifier
+- Two thyristors with center-tapped transformer
+- Average voltage: `Vdc = (Vm/π)(1 + cos α)`
+- Better performance, requires special transformer
+- Common in medium-power applications
+
+#### 3. Full-Wave Bridge Rectifier
+- Four thyristors in bridge configuration
+- Average voltage: `Vdc = (Vm/π)(1 + cos α)`
+- Standard transformer, higher component count
+- Industry standard for general applications
+
+### Load Types
+
+- **Resistive (R)**: Simple behavior, discontinuous current
+- **RL Load**: Phase lag, possible continuous conduction
+- **Highly Inductive**: Nearly constant current, four-quadrant operation
+
+---
+
+## Advanced Features
+
+### State of Charge Tracking
+Monitor battery SoC during charging process:
+```matlab
+[alpha, time, SoC_final] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, ...
+    't_charge', 3600, 'SoC_init', 20);
+fprintf('Final SoC: %.1f%%\n', SoC_final);
 ```
 
-Or use TeXstudio to open `root.tex` and compile.
+### Thyristor Loss Analysis
+Include non-ideal thyristor characteristics:
+```matlab
+[alpha, time, ~, P_loss] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity, ...
+    'Vt', 1.5, 'Ileak', 1e-6);
+fprintf('Average power loss: %.2f W\n', P_loss);
+```
+
+### Four-Quadrant Operation
+Study regenerative operation with highly inductive loads (α > 90°)
 
 ---
 
-## Key Specifications
+## Example Results
 
-### Part I: Battery Charger Function Inputs
-- Supply voltage (Vrms) and frequency f [Hz]
-- Battery voltage [V]
-- Battery equivalent internal resistance [Ω]
-- Battery capacity (Ah or Wh)
-- **Optional:** Charging time [sec] and initial State of Charge (SoC) [%]
-- **Optional:** Thyristor parameters (forward drop, leakage, switching times)
+### Firing Angle vs. Charging Time
+The toolkit generates comparative plots showing the relationship between firing angle and charging time for all three configurations, helping you select the optimal topology for your application.
 
-### Part I: Function Outputs
-- Figure: Firing angle [°] vs. charging time [sec]
-- **Optional:** Final State of Charge (SoC) [%]
-- **Optional:** Average power losses [W]
-
-### Part II: Simulation Parameters
-- Supply: 230 V, 50 Hz single-phase
-- Load types: R, RL, highly inductive
-- Firing angle: 0° - 180° (adjustable)
-- Measurements: Load voltage/current, thyristor voltage/current
+### Waveform Analysis
+Simulink models provide detailed voltage and current waveforms, allowing you to:
+- Verify conduction modes
+- Identify discontinuous vs. continuous operation
+- Analyze ripple characteristics
+- Study transient behavior
 
 ---
 
-## References
+## Contributing
 
-- Power Electronics Course Materials - Dr.-Ing. Moustafa Adly
-- MATLAB/Simulink Documentation
-- Thyristor-Based Power Converters Literature
+Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
+
+### Development Guidelines
+1. Follow MATLAB coding standards
+2. Include comprehensive comments
+3. Provide usage examples
+4. Update documentation
+5. Test with multiple parameter sets
 
 ---
 
-## Author
-- **Author Name:** Mohammed Azab
-- **Email:** mohammed@azab.io
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
+
+## Acknowledgments
+
+- Inspired by power electronics literature (Dr.-Ing. Moustafa Adly)
+- Built with MATLAB and Simulink
+- Uses Simscape Electrical for accurate component modeling
+
+---
+
+## Contact
+
+**Mohammed Azab**
+- Email: mohammed@azab.io
+- GitHub: [@mohammedazab](https://github.com/mohammedazab)
+
+---
+
+## Related Resources
+
+- [MATLAB Power Electronics Examples](https://www.mathworks.com/help/sps/power-electronics.html)
+- [Thyristor Fundamentals](https://www.electronics-tutorials.ws/power/thyristor.html)
+- [Simscape Electrical Documentation](https://www.mathworks.com/help/sps/)
+
+---
+
+## Roadmap
+
+- [ ] Add three-phase rectifier support
+- [ ] Implement PWM rectifier models
+- [ ] Add GUI for parameter configuration
+- [ ] Include harmonic analysis tools
+- [ ] Expand to IGBT and MOSFET converters
+- [ ] Add real-time control simulation
+- [ ] Create video tutorials
+
+---
+
+**ThyristoLab** - Professional thyristor rectifier analysis made simple.
+
+*Star ⭐ this repository if you find it useful!*
