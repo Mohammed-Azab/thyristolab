@@ -1,0 +1,110 @@
+# MATLAB
+*.asv
+*.m~
+*.mex*
+*.mat
+slprj/
+*.autosave
+
+# Simulink
+*.slxc
+*.slx.autosave
+*.slx.original
+sccprj/
+*.r[0-9][0-9]
+
+# Simulink Code Generation
+codegen/
+grt_rtw/
+slprj/
+
+# Simulink Cache
+*.slxc
+
+# Model Advisor
+ModelAdvisorReports/
+
+# MATLAB Code Analyzer
+*.mlx.autosave
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex.gz(busy)
+*.pdf
+*.dvi
+*.ps
+*.nav
+*.snm
+*.vrb
+*.bcf
+*.run.xml
+*.auxlock
+*.idx
+*.ilg
+*.ind
+*.loa
+*.glg
+*.glo
+*.gls
+*.ist
+
+# TeXstudio
+*.txss
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor Files
+*~
+.*.swp
+.*.swo
+*.bak
+*.orig
+
+# Python (if used for auxiliary scripts)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# Output and temporary files
+*.o
+*.so
+*.dll
+*.exe
+
+# Reports and output (keep source, ignore generated)
+report/*.pdf
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+
+# Figures (uncomment if you want to ignore generated figures)
+# report/figures/*.png
+# report/figures/*.jpg
+# report/figures/*.eps
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Backup files
+*_backup/
+backup/
