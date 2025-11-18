@@ -40,7 +40,7 @@ ModelAdvisorReports/
 *.fdb_latexmk
 *.synctex.gz
 *.synctex.gz(busy)
-*.pdf
+#*.pdf
 *.dvi
 *.ps
 *.nav
