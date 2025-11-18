@@ -1,4 +1,4 @@
-function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity, varargin)
+function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity, capUnit, varargin)
 % FULL_WAVE_BRIDGE_CHARGER Analyzes full-wave bridge controlled rectifier for battery charging
 %
 % Syntax:
@@ -10,7 +10,8 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = full_wave_bri
 %   f           - Supply frequency [Hz]
 %   Vbat        - Battery nominal voltage [V]
 %   Rbat        - Battery internal resistance [Ohm]
-%   capacity    - Battery capacity [Ah]
+%   capacity    - Battery capacity value
+%   capUnit     - Battery capacity [Ah or Wh] -string
 %
 % Optional Inputs (Name-Value pairs):
 %   't_charge'  - Charging time [sec] (default: calculated for 20-80% SoC)
@@ -44,17 +45,6 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = full_wave_bri
 %   - Two thyristor drops instead of one (slightly lower voltage)
 %   - More complex gate drive circuit
 %   - Same output voltage formula (electrically equivalent)
-%
-% Example:
-%   Vrms = 230;        % Supply voltage (RMS)
-%   f = 50;            % Frequency (Hz)
-%   Vbat = 12;         % Battery voltage (V)
-%   Rbat = 0.1;        % Internal resistance (Ohm)
-%   capacity = 50;     % Battery capacity (Ah)
-%   
-%   [alpha, t_charge] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity);
-%   figure; plot(alpha, t_charge);
-%   xlabel('Firing Angle (degrees)'); ylabel('Charging Time (hours)');
 %
 % TODO: Implement the function according to project specifications
 % TODO: Calculate average output voltage: Vdc = (Vm/pi) * (1 + cos(alpha))
@@ -93,34 +83,25 @@ charging_time_hours = zeros(size(alpha_deg));
 SoC_final = [];
 P_loss_avg = [];
 
-% TODO: For each firing angle, calculate average charging current
-for i = 1:length(alpha_rad)
-    alpha = alpha_rad(i);
-    
-    % TODO: Calculate average output voltage for full-wave bridge
-    % Vdc = (Vm / pi) * (1 + cos(alpha)) - 2*Vt
-    % Note: 2*Vt because two thyristors conduct in series
-    
-    % TODO: Calculate average charging current
-    % Idc = (Vdc - Vbat) / Rbat
-    
-    % TODO: Calculate charging time
-    % t = (capacity * Delta_SoC / 100) / Idc
-    
-    % TODO: Store results
-    charging_time_hours(i) = NaN; % Placeholder
-end
 
-% TODO: Optional - Calculate final SoC if charging time is provided
-if ~isempty(t_charge)
-    SoC_final = NaN; % Placeholder
-end
 
-% TODO: Optional - Calculate power losses
-% Note: Four thyristors total, but two conduct at a time
-if Vt > 0 || Ileak > 0
-    P_loss_avg = NaN; % Placeholder
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 % Generate main output plot
 figure('Name', 'Full-Wave Bridge Rectifier - Firing Angle vs Charging Time');

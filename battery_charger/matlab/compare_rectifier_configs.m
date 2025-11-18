@@ -9,7 +9,8 @@ function compare_rectifier_configs(Vrms, f, Vbat, Rbat, capacity)
 %   f        - Supply frequency [Hz]
 %   Vbat     - Battery nominal voltage [V]
 %   Rbat     - Battery internal resistance [Ohm]
-%   capacity - Battery capacity [Ah]
+%   capacity    - Battery capacity value
+%   capUnit     - Battery capacity [Ah or Wh] -string
 %
 % Description:
 %   This utility function calls all three rectifier configurations and
@@ -30,13 +31,13 @@ fprintf('  Rectifier Configuration Comparison\n');
 fprintf('========================================\n\n');
 
 % TODO: Call half-wave charger
-[alpha_hw, time_hw] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity);
+[alpha_hw, time_hw] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, capUnit);
 
 % TODO: Call full-wave center-tapped charger
-[alpha_ct, time_ct] = full_wave_ct_charger(Vrms, f, Vbat, Rbat, capacity);
+[alpha_ct, time_ct] = full_wave_ct_charger(Vrms, f, Vbat, Rbat, capacity, capUnit );
 
 % TODO: Call full-wave bridge charger
-[alpha_br, time_br] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity);
+[alpha_br, time_br] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity, capUnit);
 
 % TODO: Generate comparison plot
 figure('Name', 'Rectifier Configuration Comparison');

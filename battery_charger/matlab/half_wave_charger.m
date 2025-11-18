@@ -1,16 +1,17 @@
-function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, varargin)
-% HALF_WAVE_CHARGER Analyzes half-wave controlled rectifier for battery charging
+function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, capUnit, varargin)
 %
 % Syntax:
 %   [alpha_deg, charging_time_hours] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity)
-%   [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_charger(..., t_charge, SoC_init, Vt, Ileak, t_rise, t_fall)
+%   [alpha_deg, charging_time_hours, SoC_final] =  half_wave_charger(..., t_charge, SoC_init)
+%   [alpha_deg, charging_time_hours, P_loss_avg] = half_wave_charger(..., Vt, Ileak, t_rise, t_fall)
 %
 % Inputs:
 %   Vrms        - Supply voltage RMS value [V]
 %   f           - Supply frequency [Hz]
 %   Vbat        - Battery nominal voltage [V]
 %   Rbat        - Battery internal resistance [Ohm]
-%   capacity    - Battery capacity [Ah]
+%   capacity    - Battery capacity value
+%   capUnit     - Battery capacity [Ah or Wh] -string
 %
 % Optional Inputs (Name-Value pairs):
 %   't_charge'  - Charging time [sec] (default: calculated for 20-80% SoC)
@@ -30,17 +31,6 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_cha
 %   This function analyzes a half-wave controlled rectifier for battery charging.
 %   It calculates the relationship between firing angle and charging time, and
 %   optionally tracks State of Charge and calculates power losses.
-%
-% Example:
-%   Vrms = 230;        % Supply voltage (RMS)
-%   f = 50;            % Frequency (Hz)
-%   Vbat = 12;         % Battery voltage (V)
-%   Rbat = 0.1;        % Internal resistance (Ohm)
-%   capacity = 50;     % Battery capacity (Ah)
-%   
-%   [alpha, t_charge] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity);
-%   figure; plot(alpha, t_charge);
-%   xlabel('Firing Angle (degrees)'); ylabel('Charging Time (hours)');
 %
 % TODO: Implement the function according to project specifications
 % TODO: Calculate average charging current for each firing angle
@@ -80,34 +70,31 @@ charging_time_hours = zeros(size(alpha_deg));
 SoC_final = [];
 P_loss_avg = [];
 
-% TODO: For each firing angle, calculate average charging current
-for i = 1:length(alpha_rad)
-    alpha = alpha_rad(i);
-    
-    % TODO: Calculate average output voltage for half-wave rectifier
-    % Vdc = (Vm / (2*pi)) * (1 + cos(alpha)) - Vt (if thyristor drop considered)
-    
-    % TODO: Calculate average charging current
-    % Idc = (Vdc - Vbat) / Rbat
-    
-    % TODO: Calculate charging time
-    % For given SoC change: t = (capacity * Delta_SoC / 100) / Idc
-    
-    % TODO: Store in charging_time_hours array
-    charging_time_hours(i) = NaN; % Placeholder
-end
 
-% TODO: Optional - Calculate final SoC if charging time is provided
-if ~isempty(t_charge)
-    % TODO: Implement SoC calculation
-    SoC_final = NaN; % Placeholder
-end
 
-% TODO: Optional - Calculate power losses if thyristor parameters provided
-if Vt > 0 || Ileak > 0
-    % TODO: Implement power loss calculation
-    P_loss_avg = NaN; % Placeholder
-end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 % Generate main output plot
 figure('Name', 'Half-Wave Rectifier - Firing Angle vs Charging Time');
