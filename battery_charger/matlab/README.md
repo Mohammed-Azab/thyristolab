@@ -24,11 +24,6 @@ This directory contains MATLAB functions for analyzing controlled rectifiers use
    - No center-tap required
    - Similar performance to center-tapped
 
-4. **`compare_rectifier_configs.m`**
-   - Utility function to compare all three configurations
-   - Generates comparative plots and tables
-   - Helps in configuration selection
-
 ## Usage Examples
 
 ### Basic Usage - Half-Wave Rectifier
@@ -67,9 +62,11 @@ compare_rectifier_configs(230, 50, 12, 0.1, 50);
 - `Rbat` - Battery internal resistance [Ω]
 - `capacity` - Battery capacity [Ah]
 
-### Optional Parameters (Name-Value pairs)
+### Optional 1 Parameters (Name-Value pairs)
 - `'t_charge'` - Charging time [sec] (if known)
 - `'SoC_init'` - Initial State of Charge [%] (default: 20)
+
+### Optional 2 Parameters (Name-Value pairs)
 - `'Vt'` - Thyristor forward voltage drop [V] (default: 0)
 - `'Ileak'` - Thyristor reverse leakage current [A] (default: 0)
 - `'t_rise'` - Voltage/current rise time [sec] (default: 0)
@@ -81,22 +78,13 @@ compare_rectifier_configs(230, 50, 12, 0.1, 50);
 - `alpha_deg` - Array of firing angles [degrees]
 - `charging_time_hours` - Corresponding charging times [hours]
 
-### Optional Outputs
+### Optional 1 Outputs
 - `SoC_final` - Final State of Charge [%] (if t_charge provided)
+
+### Optional 2 Outputs
 - `P_loss_avg` - Average power losses [W] (if thyristor params provided)
 
 ## Implementation Notes
-
-### TODO List for Implementation
-Each function file contains detailed TODO comments indicating what needs to be implemented:
-
-1. ✅ Function structure and documentation (provided)
-2. ⬜ Calculate average output voltage for each firing angle
-3. ⬜ Calculate average charging current
-4. ⬜ Determine charging time based on current and capacity
-5. ⬜ Implement SoC tracking (optional)
-6. ⬜ Calculate power losses (optional)
-7. ⬜ Generate plots and results
 
 ### Key Equations
 
@@ -142,6 +130,3 @@ Suggested test cases:
 3. Compare simulation results with hand calculations
 4. Use small firing angle steps (e.g., 5°) for smooth plots
 5. Validate that charging time → ∞ as α approaches values where Vdc ≈ Vbat
-
-## Due Date
-Part I is due on **November 22, 2025**
