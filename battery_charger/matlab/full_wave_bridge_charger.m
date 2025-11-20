@@ -86,7 +86,89 @@ P_loss_avg = [];
 
 
 
+% Battery capacity -> total charge [Coulomb]
+switch lower(string(capUnit))
+    case "ah"                  % A per hour 
+        Q_tot = capacity * 3600;        
+    case "wh"                  % 1 Wh = 3600 joules 
+        E_tot = capacity * 3600;        % [J]
+        Q_tot = E_tot / Vbat;           % [C] using Energy = Voltage*charge
+    otherwise
+        error('capUnit must be ''Ah'' or ''Wh''.');
+end
 
+SoC_target = 80;                       % target SoC for "charging time" plot
+Q_init     = (SoC_init/100) * Q_tot;   % initial charge [C]
+
+
+% empty storage for the outputs 
+nAlpha = numel(alpha_deg);
+charging_time_hours = nan(1, nAlpha);
+SoC_final           = nan(1, nAlpha);
+P_loss_avg          = nan(1, nAlpha);
+
+for k = 1:nAlpha
+    alpha = alpha_rad(k);
+    Vdc_ideal = (2*Vm/pi) * cos(alpha);  % avergae output voltag,two of these per cycle → multiply by 2
+    Vdc_eff = Vdc_ideal - 2*Vt;  % aerage needed for currebt flow, each conduction path has 2 SCRs (T1-T3 | T2-T4)
+    I_charge = (Vdc_eff - Vbat) / Rbat; % average current 
+    
+    % If current <=zero then no charging
+    if I_charge <= 0
+        charging_time_hours(k) = Inf;  % Time to reach 80% SoC is infinite
+        if ~isempty(t_charge)
+            SoC_final(k) = SoC_init; % SoC doesn't change
+        end
+        P_loss_avg(k) = Vrms * Ileak; % Only leakage loss (very small)
+        continue;    % skips the rest of the loop for this alpha
+    end
+
+    % If effective DC <= battery EMF, battery cannot charge
+    if Vdc_eff <= Vbat
+        charging_time_hours(k) = Inf;     
+        if ~isempty(t_charge)
+            SoC_final(k) = SoC_init;     
+        end
+        P_loss_avg(k) = Vrms * Ileak;     
+        continue;               
+    end
+
+    % t_charge isnt given
+    if isempty(t_charge)
+        dSoC = SoC_target - SoC_init;   % charging to calculate in percentage 
+        if dSoC <= 0
+            t_req = 0;                 % already above target
+            SoC_final(k) = SoC_init;
+        else
+            dQ   = (dSoC/100) * Q_tot; % to convert Soc difference to charge needed
+            t_req = dQ / I_charge;     % required charging time in seconds 
+            SoC_final(k) = SoC_target; % stop charging when we hit the target
+        end
+        charging_time_hours(k) = t_req / 3600; %to convert to hours
+
+
+    % t_charge is given
+    else
+        % Charge added in t_charge:
+        dQ = I_charge * t_charge;        % [C]
+        SoC_f = SoC_init + 100 * (dQ / Q_tot);
+        SoC_f = min(max(SoC_f, 0), 100); % clamp between 0 and 100%
+        SoC_final(k) = SoC_f;
+
+        % For the main plot we STILL show time to go up to 80% SoC
+        dQ_req = (SoC_target - SoC_init)/100 * Q_tot;
+        if dQ_req <= 0
+            t_req = 0;
+        else
+            t_req = dQ_req / I_charge;
+        end
+        charging_time_hours(k) = t_req / 3600;
+    end
+
+
+
+
+end
 
 
 
