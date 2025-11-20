@@ -13,15 +13,15 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full
 %   capUnit     - Battery capacity unit 'Ah' or 'Wh'
 %
 % Name-Value Optional Inputs:
-%   'alpha_deg' - Vector of firing angles to analyze [deg]
 %   't_charge'  - Charging time [s]
 %   'SoC_init'  - Initial state of charge [%]
-%   'SoC_target'- Target state of charge [%]
 %   'Vt'        - Thyristor forward drop per conducting device [V]
 %   'Rth'       - Equivalent on-state resistance of thyristor [Ohm]
 %   'Ileak'     - Reverse leakage Current [A]
 %   't_rise'    - Rise time [s]
 %   't_fall'    - Fall time[s]
+%   'alpha_deg' - Vector of firing angles to analyze [deg]
+%   'SoC_target'- Target state of charge [%]
 %
 % Outputs:
 %   alpha_deg           - Analyzed firing angles [deg]
@@ -236,24 +236,80 @@ end
 figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Charging Time');
 plot(alpha_deg, charging_time_hours, 'r-s', 'LineWidth', 2);
 grid on;
-xlabel('Firing Angle \\alpha (degrees)');
+xlabel('Firing Angle \alpha (degrees)');
 ylabel('Charging Time (hours)');
 title('Full-Wave Center-Tapped Controlled Rectifier');
 legend('Charging Time');
 
-% Console summary
-fprintf('\n=== Full-Wave Center-Tapped Rectifier Battery Charger ===\n');
-fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
-fprintf('Battery: %.1f V, Rint=%.3f Ohm, Capacity=%.1f Ah\n', Vbat, Rbat, capacity);
-if ~isempty(Vt)
-    fprintf('Thyristor: Vt=%.2f V, Rth=%.4f Ohm\n', Vt, Rth);
-end
-fprintf('Analyzed alphas: [%d..%d] deg (n=%d)\n', round(alpha_deg(1)), round(alpha_deg(end)), numel(alpha_deg));
-if isempty(t_charge)
-    fprintf('Charging window: SoC %.1f%% -> %.1f%%\n', SoC_init, SoC_target);
+% Generate State of Charge vs Time graph
+if ~isempty(t_charge)
+    % For fixed charging time scenario
+    [~, alpha_idx] = min(abs(alpha_deg - alpha));
+    t_charge_vec = linspace(0, t_charge/3600, 100); % hours
+    SoC_vec = SoC_init + (SoC_final(alpha_idx) - SoC_init) * (t_charge_vec / (t_charge/3600));
+    
+    figure('Name', 'Battery State of Charge vs Time');
+    plot(t_charge_vec, SoC_vec, 'b-', 'LineWidth', 2);
+    hold on;
+    plot(0, SoC_init, 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
+    plot(t_charge/3600, SoC_final(alpha_idx), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
+    grid on;
+    xlabel('Time (hours)');
+    ylabel('State of Charge (%)');
+    title(sprintf('Battery Charging Profile (\\alpha = %.0f°)', alpha));
+    legend('SoC', 'Initial State', 'Final State', 'Location', 'southeast');
+    text(0, SoC_init-5, sprintf('  %.1f%%', SoC_init), 'FontSize', 10, 'Color', 'g');
+    text(t_charge/3600, SoC_final(alpha_idx)+5, sprintf('  %.1f%%', SoC_final(alpha_idx)), 'FontSize', 10, 'Color', 'r');
+    ylim([max(0, SoC_init-10), min(100, max(SoC_final(alpha_idx), SoC_target)+10)]);
+    hold off;
 else
-    fprintf('t_charge=%.1f s; SoC_init=%.1f%%\n', t_charge, SoC_init);
+    % For target SoC scenario
+    [~, alpha_idx] = min(abs(alpha_deg - alpha));
+    t_charge_hours = charging_time_hours(alpha_idx);
+    t_charge_vec = linspace(0, t_charge_hours, 100);
+    SoC_vec = SoC_init + (SoC_target - SoC_init) * (t_charge_vec / t_charge_hours);
+    
+    figure('Name', 'Battery State of Charge vs Time');
+    plot(t_charge_vec, SoC_vec, 'b-', 'LineWidth', 2);
+    hold on;
+    plot(0, SoC_init, 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
+    plot(t_charge_hours, SoC_target, 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
+    grid on;
+    xlabel('Time (hours)');
+    ylabel('State of Charge (%)');
+    title(sprintf('Battery Charging Profile (\\alpha = %.0f°)', alpha));
+    legend('SoC', 'Initial State', 'Target State', 'Location', 'southeast');
+    text(0, SoC_init-5, sprintf('  %.1f%%', SoC_init), 'FontSize', 10, 'Color', 'g');
+    text(t_charge_hours, SoC_target+5, sprintf('  %.1f%%', SoC_target), 'FontSize', 10, 'Color', 'r');
+    ylim([max(0, SoC_init-10), min(100, SoC_target+10)]);
+    hold off;
 end
-fprintf('========================================================\n\n');
 
+% Display system parameters
+fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
+fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
+fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
+if ~isempty(Vt)
+    fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm\n', Vt, Rth);
+end
+fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
+fprintf('======================================================\n');
+
+[~, alpha_idx] = min(abs(alpha_deg - alpha));
+fprintf('\n========== Battery CHARGER Params ==========\n');
+fprintf('Firing Angle (α)    : %.0f°\n', alpha);
+fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
+fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
+fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));
+fprintf('Power Loss (SCR)    : %.2f W\n', P_loss_avg(alpha_idx));
+if isempty(t_charge)
+    fprintf('Initial SoC         : %.1f%%\n', SoC_init);
+    fprintf('Target SoC          : %.1f%%\n', SoC_target);
+    fprintf('Charging Time       : %.2f hours\n', charging_time_hours(alpha_idx));
+else
+    fprintf('Initial SoC         : %.1f%%\n', SoC_init);
+    fprintf('Final SoC           : %.1f%%\n', SoC_final(alpha_idx));
+    fprintf('Charging Time       : %.2f hours\n', t_charge/3600);
+end
+fprintf('=========================================\n\n');
 end

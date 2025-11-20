@@ -14,7 +14,7 @@ SoC_target = 100;
 % SoC & time
 SoC_init = 20; 
 SoC_target = 80; 
-t_charge = [];
+t_charge = inf;
 
 % Thyristor
 alpha_deg = 0:5:175; 
