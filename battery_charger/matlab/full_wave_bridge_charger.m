@@ -162,7 +162,7 @@ for k = 1:nAlpha
         else
             t_req = dQ_req / I_charge;
         end
-        charging_time_hours(k) = t_req / 3600;
+        charging_time_hours(k) = t_req / 3600
     end
 
 
