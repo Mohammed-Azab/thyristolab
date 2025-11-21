@@ -20,11 +20,6 @@ function compare_rectifier_configs(Vrms, f, Vbat, Rbat, capacity)
 % Example:
 %   compare_rectifier_configs(230, 50, 12, 0.1, 50);
 %
-% TODO: Implement comparison function
-% TODO: Call all three charger functions
-% TODO: Generate side-by-side plots
-% TODO: Create comparison table
-% TODO: Calculate performance metrics (efficiency, charging time ratio, etc.)
 
 fprintf('\n========================================\n');
 fprintf('  Rectifier Configuration Comparison\n');
