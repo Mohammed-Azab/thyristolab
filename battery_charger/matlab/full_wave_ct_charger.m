@@ -32,7 +32,7 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full
 %
 % Notes:
 % - Full-wave CT uses two SCRs; one drop Vt per half-cycle.
-% - Ideal R-load average: Vdc = (Vm/pi)*(1+cos(alpha)).
+% - Ideal R-load average: Vdc = (Vm/(2*pi))*(1+cos(alpha)).
 
 % ---------- Load parameters from workspace ----------
 % Try to load specific parameters from workspace, use defaults if not found
@@ -92,7 +92,7 @@ if isstring(capUnit) || ischar(capUnit)
 end
 
 % ---------- Constants ----------
-Vm = sqrt(2) * Vrms;
+Vm = sqrt(2) * Vrms; % Peak voltage per half-winding
 
 % ---------- Sampling ----------
 N = 4096;
@@ -131,6 +131,8 @@ for k = 1:na
     v_out(on) = v_conv(on);
 
     Vavg(k) = mean(v_out);
+    % Theoretical average for ideal resistive load (no battery clamp)
+    %Vavg_theoretical(k) = (Vm/(2*pi)) * (1 + cos(a));
     Vout_rms(k) = sqrt(mean(v_out.^2));
     Iavg(k) = mean(i_t);
     Irms(k) = sqrt(mean(i_t.^2));
@@ -280,9 +282,7 @@ end
 fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
 fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
 fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
-if ~isempty(Vt)
-    fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm\n', Vt, Rth);
-end
+fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, p.Results.Ileak, p.Results.t_rise, p.Results.t_fall);
 fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
 fprintf('======================================================\n');
 
@@ -292,7 +292,8 @@ fprintf('Firing Angle (α)    : %.0f°\n', alpha);
 fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
 fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
 fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));
-fprintf('Power Loss (SCR)    : %.2f W\n', P_loss_avg(alpha_idx));
+if ~isempty(P_loss_avg)
+    fprintf('Power Loss (SCR)    : %.2f W\n', P_loss_avg(alpha_idx));
 if isempty(t_charge)
     fprintf('Initial SoC         : %.1f%%\n', SoC_init);
     fprintf('Target SoC          : %.1f%%\n', SoC_target);
