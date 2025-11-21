@@ -1,11 +1,11 @@
 % default battery_charger params
 
 % Supply
-Vrms = 230; 
+Vrms = 430; 
 f = 50;
 
 % Battery
-Vbat = 12; 
+Vbat = 400; 
 Rbat = 0.1; 
 capacity = 50; 
 capUnit = 'Ah';
