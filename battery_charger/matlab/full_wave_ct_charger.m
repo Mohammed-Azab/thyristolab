@@ -199,14 +199,8 @@ if enablePlots
     grid on; xlabel('Time (ms)'); ylabel('V_{out} (V)');
     title('Output Voltage');
     
-    nexttile; axis off; 
-    text(0.05, 0.6, sprintf('Battery:\n  Capacity = %.1f Ah\n  SoC: %.0f%% → %.0f%%\n  V_{bat} = %.1f V\n  R_{bat} = %.3f Ω', ...
-        capacity, SoC_init, SoC_target, Vbat, Rbat), 'FontSize', 9);
-    
     % Find index of alpha in alpha_deg array for metrics display
     [~, alpha_idx] = min(abs(alpha_deg - alpha));
-    text(0.05, 0.15, sprintf('Averages (α=%.0f°):\n  V_{avg} = %.2f V\n  I_{avg} = %.2f A\n  P_{loss} = %.2f W', ...
-        alpha, Vavg(alpha_idx), Iavg(alpha_idx), P_loss_avg(alpha_idx)), 'FontSize', 9);
     
     % Figure 2: Currents
     figure('Name', 'Full-Wave CT Rectifier - Currents');
@@ -228,9 +222,6 @@ if enablePlots
     grid on; xlabel('Time (ms)'); ylabel('P_{loss} (W)');
     title('Instantaneous Power Loss');
     
-    nexttile; axis off;
-    text(0.05, 0.5, sprintf('Current Metrics:\n  I_{avg} = %.2f A\n  I_{rms} = %.2f A\n  P_{loss,avg} = %.2f W', ...
-        Iavg(alpha_idx), Irms(alpha_idx), P_loss_avg(alpha_idx)), 'FontSize', 10);
 end
 
 figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Charging Time');
