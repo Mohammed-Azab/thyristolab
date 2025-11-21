@@ -54,12 +54,13 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = full_wave_bri
 
 % Parse optional inputs
 p = inputParser;
-addParameter(p, 't_charge', [], @isnumeric);
+addParameter(p, 't_charge', inf, @isnumeric);
 addParameter(p, 'SoC_init', 20, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
 addParameter(p, 'Ileak', 0, @isnumeric);
 addParameter(p, 't_rise', 0, @isnumeric);
 addParameter(p, 't_fall', 0, @isnumeric);
+addParameter(p, 'alpha_sel', [], @isnumeric);
 parse(p, varargin{:});
 
 % Extract parameters
@@ -69,6 +70,8 @@ Vt = p.Results.Vt;
 Ileak = p.Results.Ileak;
 t_rise = p.Results.t_rise;
 t_fall = p.Results.t_fall;
+alpha_sel = p.Results.alpha_sel;
+
 
 % Constants
 Vm = sqrt(2) * Vrms;  % Peak voltage
@@ -109,8 +112,8 @@ P_loss_avg          = nan(1, nAlpha);
 
 for k = 1:nAlpha
     alpha = alpha_rad(k);
-    Vdc_ideal = (2*Vm/pi) * cos(alpha);  % avergae output voltag,two of these per cycle → multiply by 2
-    Vdc_eff = Vdc_ideal - 2*Vt;  % aerage needed for currebt flow, each conduction path has 2 SCRs (T1-T3 | T2-T4)
+    Vdc_ideal = (Vm/pi) * (1+cos(alpha));  % avergae output voltag,two of these per cycle → multiply by 2
+    Vdc_eff = Vdc_ideal - 2*Vt;  % average needed for currebt flow, each conduction path has 2 SCRs (T1-T3 | T2-T4)
     I_charge = (Vdc_eff - Vbat) / Rbat; % average current 
     
     % If current <=zero then no charging
@@ -165,22 +168,11 @@ for k = 1:nAlpha
         charging_time_hours(k) = t_req / 3600
     end
 
-
-
+    P_cond = 2 * Vt * I_charge;
+    P_leak = Vrms * Ileak;
+    P_loss_avg(k) = P_cond + P_leak;
 
 end
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -197,7 +189,7 @@ legend('Charging Time');
 % Display summary
 fprintf('\n=== Full-Wave Bridge Rectifier Battery Charger ===\n');
 fprintf('Supply: %.1f V RMS, %.1f Hz\n', Vrms, f);
-fprintf('Battery: %.1f V, %.3f Ohm, %.1f Ah\n', Vbat, Rbat, capacity);
+fprintf('Battery: %.1f V, %.3f Ohm, %.1f %s\n', Vbat, Rbat, capacity, string(capUnit));
 fprintf('Configuration: Bridge with 4 SCRs\n');
 fprintf('Initial SoC: %.1f%%\n', SoC_init);
 if ~isempty(SoC_final)
