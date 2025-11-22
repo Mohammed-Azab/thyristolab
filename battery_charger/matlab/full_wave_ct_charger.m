@@ -81,7 +81,7 @@ addParameter(p, 'Rth', Rth_ws, @isnumeric);
 addParameter(p, 'Ileak', 0, @isnumeric); 
 addParameter(p, 't_rise', 0, @isnumeric); 
 addParameter(p, 't_fall', 0, @isnumeric);
-addParameter(p, 'alpha', 0, @isnumeric); 
+addParameter(p, 'alpha', alpha_ws, @isnumeric); 
 addParameter(p, 'enablePlots', enablePlots_ws, @(x) islogical(x) || isnumeric(x));
 parse(p, varargin{:});
 
@@ -96,9 +96,6 @@ t_rise        = p.Results.t_rise;
 t_fall        = p.Results.t_fall;
 enablePlots   = logical(p.Results.enablePlots);
 alpha         = p.Results.alpha;
-
-if isempty(alpha)
-  alpha = alpha_ws;
 
 if isstring(capUnit) || ischar(capUnit)
     if strcmpi(string(capUnit), "Wh")
@@ -212,6 +209,8 @@ metrics = struct('Vavg', Vavg, 'Vrms', Vout_rms, 'Iavg', Iavg, 'Irms', Irms, ...
                  'P_batt', P_batt, 'P_thyristor', P_thyristor, ...
                  'P_blocking', P_blocking, 'P_switching', P_switching, 'P_total', P_total);
 
+[~, alpha_idx] = min(abs(alpha_deg - alpha));
+
 if enablePlots
     % Time vector
     t_ms = theta / (2*pi*f) * 1000;
@@ -266,9 +265,6 @@ if enablePlots
     plot(t_ms, v_out_demo, 'b-','LineWidth',1.2); 
     grid on; xlabel('Time (ms)'); ylabel('V_{out} (V)');
     title('Output Voltage');
-    
-    % Find index of alpha in alpha_deg array for metrics display
-    [~, alpha_idx] = min(abs(alpha_deg - alpha));
     
     % Figure 2: Currents
     figure('Name', 'Full-Wave CT Rectifier - Currents');
@@ -344,7 +340,6 @@ xlabel('Firing Angle \alpha (degrees)');
 ylabel('Power Loss (W)');
 
 if ~isempty(t_charge)
-    [~, alpha_idx] = min(abs(alpha_deg - alpha));
     t_charge_vec = linspace(0, t_charge/3600, 100); % hours
     SoC_vec = SoC_init + (SoC_final(alpha_idx) - SoC_init) * (t_charge_vec / (t_charge/3600));
     
@@ -363,7 +358,6 @@ if ~isempty(t_charge)
     ylim([max(0, SoC_init-10), min(100, max(SoC_final(alpha_idx), SoC_target)+10)]);
     hold off;
 else
-    [~, alpha_idx] = min(abs(alpha_deg - alpha));
     t_charge_hours = charging_time_hours(alpha_idx);
     t_charge_vec = linspace(0, t_charge_hours, 100);
     SoC_vec = SoC_init + (SoC_target - SoC_init) * (t_charge_vec / t_charge_hours);
@@ -394,7 +388,6 @@ end
 fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
 fprintf('======================================================\n');
 
-[~, alpha_idx] = min(abs(alpha_deg - alpha));
 fprintf('\n========== Battery CHARGER Params ==========\n');
 fprintf('Firing Angle (α)    : %.0f°\n', alpha);
 fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
