@@ -28,11 +28,13 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full
 %   charging_time_hours - Charging time for each alpha [h]
 %   SoC_final           - Final SoC if 't_charge' provided [%]
 %   P_loss_avg          - Average SCR conduction loss for each alpha [W]
-%   metrics             - Struct with fields per alpha: Vavg, Vrms, Iavg, Irms
+%   metrics             - Struct with fields per alpha: Vavg, Vrms, Iavg, Irms,
+%                         P_batt, P_thyristor, P_blocking, P_switching, P_total
 %
 % Notes:
 % - Full-wave CT uses two SCRs; one drop Vt per half-cycle.
 % - Ideal R-load average: Vdc = (Vm/(2*pi))*(1+cos(alpha)).
+% - See README.md for detailed equations.
 
 % ---------- Load parameters from workspace ----------
 % Try to load specific parameters from workspace, use defaults if not found
@@ -61,12 +63,17 @@ try
 catch
     alpha = 90;
 end
+try
+    SoC_init_ws = evalin('base', 'SoC_init');
+catch
+    SoC_init_ws = 90;
+end
 
 
 % ---------- Parse inputs ----------
 p = inputParser;
 addParameter(p, 't_charge', [], @isnumeric);
-addParameter(p, 'SoC_init', 20, @isnumeric);
+addParameter(p, 'SoC_init', SoC_init_ws, @isnumeric);
 addParameter(p, 'SoC_target', SoC_target_ws, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
 addParameter(p, 'alpha_deg', alpha_deg_ws, @(x) isnumeric(x) && isvector(x));
@@ -112,6 +119,11 @@ Vout_rms = zeros(1, na);
 Iavg = zeros(1, na);
 Irms = zeros(1, na);
 P_loss_avg = zeros(1, na);
+P_batt = zeros(1, na);        % Battery internal losses
+P_thyristor = zeros(1, na);   % Thyristor conduction losses
+P_blocking = zeros(1, na);    % Thyristor blocking/leakage losses
+P_switching = zeros(1, na);   % Thyristor switching losses
+P_total = zeros(1, na);       % Total power losses
 charging_time_hours = zeros(1, na);
 SoC_final = [];
 
@@ -140,7 +152,41 @@ for k = 1:na
     Iavg(k) = mean(i_t);
     Irms(k) = sqrt(mean(i_t.^2));
 
-    P_loss_avg(k) = Vt*Iavg(k) + Rth*mean(i_t.^2);
+    % Power Loss Calculations
+    % Battery internal resistance losses: P = I_rms^2 * Rbat
+    P_batt(k) = Irms(k)^2 * Rbat;
+    
+    % Thyristor conduction losses: P = Vt*I_avg + Rth*I_rms^2
+    P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+    
+    % Thyristor blocking/leakage losses: P = V_blocking * Ileak (average)
+    if Ileak > 0
+        v_blocking = V_abs;
+        v_blocking(on) = 0;  % Zero when conducting
+        P_blocking(k) = mean(v_blocking) * Ileak;
+    else
+        P_blocking(k) = 0;
+    end
+    
+    % Thyristor switching losses: P = f * (E_on + E_off)
+    if (t_rise > 0 || t_fall > 0) && Irms(k) > 0
+        I_peak = max(i_t);
+        V_block_avg = mean(V_abs(~on));
+        if isnan(V_block_avg)
+            V_block_avg = Vm;
+        end
+        E_on = (1/6) * V_block_avg * I_peak * t_rise;
+        E_off = (1/6) * V_block_avg * I_peak * t_fall;
+        P_switching(k) = f * (E_on + E_off);
+    else
+        P_switching(k) = 0;
+    end
+    
+    % Total losses
+    P_total(k) = P_batt(k) + P_thyristor(k) + P_blocking(k) + P_switching(k);
+    
+    % Legacy output for backward compatibility
+    P_loss_avg(k) = P_thyristor(k);
 
     if isempty(t_charge)
         dSoC = max(SoC_target - SoC_init, 0)/100; 
@@ -157,7 +203,9 @@ for k = 1:na
     end
 end
 
-metrics = struct('Vavg', Vavg, 'Vrms', Vout_rms, 'Iavg', Iavg, 'Irms', Irms);
+metrics = struct('Vavg', Vavg, 'Vrms', Vout_rms, 'Iavg', Iavg, 'Irms', Irms, ...
+                 'P_batt', P_batt, 'P_thyristor', P_thyristor, ...
+                 'P_blocking', P_blocking, 'P_switching', P_switching, 'P_total', P_total);
 
 if enablePlots
     % Time vector
@@ -173,7 +221,17 @@ if enablePlots
     i_demo(on_demo) = (v_conv_demo(on_demo) - Vbat) ./ Rbat;
     v_out_demo = zeros(size(theta));
     v_out_demo(on_demo) = v_conv_demo(on_demo);
-    p_inst = i_demo.^2 * Rth + Vt * i_demo; % Instantaneous power loss
+    
+    % Instantaneous power losses
+    p_batt_inst = i_demo.^2 * Rbat;                    % Battery losses
+    p_thyristor_inst = i_demo.^2 * Rth + Vt * i_demo;  % Thyristor losses
+    
+    % Blocking losses
+    v_blocking_demo = V_abs;
+    v_blocking_demo(on_demo) = 0;
+    p_blocking_inst = v_blocking_demo * Ileak;
+    
+    p_total_inst = p_batt_inst + p_thyristor_inst + p_blocking_inst;     % Total losses
     
     % Thyristor voltage and current
     % When thyristor is ON: Vth = Vt + Rth*Ith, Ith = i_demo
@@ -222,10 +280,18 @@ if enablePlots
     grid on; xlabel('Time (ms)'); ylabel('I_{th} (A)');
     title('Thyristor Current');
     
-    nexttile; 
-    plot(t_ms, p_inst, 'r-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('P_{loss} (W)');
-    title('Instantaneous Power Loss');
+    nexttile;
+    if Ileak > 0 || Rth > 0 || Vt > 0
+        plot(t_ms, p_batt_inst, 'b-', t_ms, p_thyristor_inst, 'r-', ...
+             t_ms, p_blocking_inst, 'g-', t_ms, p_total_inst, 'k--', 'LineWidth', 1.2);
+        legend('P_{batt}', 'P_{thyristor}', 'P_{blocking}', 'P_{total}', 'Location', 'best');
+        title('Instantaneous Power Losses');
+    else
+        plot(t_ms, p_batt_inst, 'b-', 'LineWidth', 1.2);
+        legend('P_{batt}', 'Location', 'best');
+        title('Instantaneous Battery Power Loss');
+    end
+    grid on; xlabel('Time (ms)'); ylabel('Power Loss (W)');
     
 end
 
@@ -237,9 +303,42 @@ ylabel('Charging Time (hours)');
 title('Full-Wave Center-Tapped Controlled Rectifier');
 legend('Charging Time');
 
-% Generate State of Charge vs Time graph
+% Power Losses vs Firing Angle
+figure('Name', 'Full-Wave CT Rectifier - Power Losses vs Firing Angle');
+if any(P_thyristor > 0) || any(P_blocking > 0) || any(P_switching > 0)
+    hold on;
+    plot(alpha_deg, P_batt, 'b-o', 'LineWidth', 2, 'MarkerSize', 6);
+    plot(alpha_deg, P_thyristor, 'r-s', 'LineWidth', 2, 'MarkerSize', 6);
+    if any(P_blocking > 0)
+        plot(alpha_deg, P_blocking, 'g-d', 'LineWidth', 2, 'MarkerSize', 6);
+    end
+    if any(P_switching > 0)
+        plot(alpha_deg, P_switching, 'm-^', 'LineWidth', 2, 'MarkerSize', 6);
+    end
+    plot(alpha_deg, P_total, 'k-^', 'LineWidth', 2, 'MarkerSize', 6);
+    hold off;
+    
+    leg_entries = {'Battery (I^2R_{bat})', 'Thyristor Conduction (Vt+Rth)'};
+    if any(P_blocking > 0)
+        leg_entries{end+1} = 'Blocking (V_{block}·I_{leak})';
+    end
+    if any(P_switching > 0)
+        leg_entries{end+1} = 'Switching';
+    end
+    leg_entries{end+1} = 'Total Losses';
+    legend(leg_entries, 'Location', 'best');
+    title('Power Losses vs Firing Angle (Full-Wave CT)');
+else
+    % Plot only battery losses if thyristor losses are negligible
+    plot(alpha_deg, P_batt, 'b-o', 'LineWidth', 2, 'MarkerSize', 6);
+    legend('Battery Losses (I^2R_{bat})', 'Location', 'best');
+    title('Battery Power Losses vs Firing Angle (Full-Wave CT)');
+end
+grid on;
+xlabel('Firing Angle \alpha (degrees)');
+ylabel('Power Loss (W)');
+
 if ~isempty(t_charge)
-    % For fixed charging time scenario
     [~, alpha_idx] = min(abs(alpha_deg - alpha));
     t_charge_vec = linspace(0, t_charge/3600, 100); % hours
     SoC_vec = SoC_init + (SoC_final(alpha_idx) - SoC_init) * (t_charge_vec / (t_charge/3600));
@@ -259,7 +358,6 @@ if ~isempty(t_charge)
     ylim([max(0, SoC_init-10), min(100, max(SoC_final(alpha_idx), SoC_target)+10)]);
     hold off;
 else
-    % For target SoC scenario
     [~, alpha_idx] = min(abs(alpha_deg - alpha));
     t_charge_hours = charging_time_hours(alpha_idx);
     t_charge_vec = linspace(0, t_charge_hours, 100);
@@ -297,14 +395,26 @@ fprintf('Firing Angle (α)    : %.0f°\n', alpha);
 fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
 fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
 fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));
-if ~isempty(Ileak)
-    fprintf('Power Loss (SCR)    : %.2f W\n', P_loss_avg(alpha_idx));
+fprintf('\n--- Power Losses ---\n');
+fprintf('Battery Loss        : %.3f W\n', P_batt(alpha_idx));
+if P_thyristor(alpha_idx) > 0
+    fprintf('Thyristor Conduction: %.3f W\n', P_thyristor(alpha_idx));
+    fprintf('  - Forward drop    : %.3f W\n', Vt*Iavg(alpha_idx));
+    fprintf('  - I²Rth           : %.3f W\n', Rth*Irms(alpha_idx)^2);
+end
+if P_blocking(alpha_idx) > 0
+    fprintf('Blocking Loss       : %.3f W\n', P_blocking(alpha_idx));
+end
+if P_switching(alpha_idx) > 0
+    fprintf('Switching Loss      : %.3f W\n', P_switching(alpha_idx));
+end
+fprintf('Total Power Loss    : %.3f W\n', P_total(alpha_idx));
 if isempty(t_charge)
-    fprintf('Initial SoC         : %.1f%%\n', SoC_init);
+    fprintf('\nInitial SoC         : %.1f%%\n', SoC_init);
     fprintf('Target SoC          : %.1f%%\n', SoC_target);
     fprintf('Charging Time       : %.2f hours\n', charging_time_hours(alpha_idx));
 else
-    fprintf('Initial SoC         : %.1f%%\n', SoC_init);
+    fprintf('\nInitial SoC         : %.1f%%\n', SoC_init);
     fprintf('Final SoC           : %.1f%%\n', SoC_final(alpha_idx));
     fprintf('Charging Time       : %.2f hours\n', t_charge/3600);
 end
