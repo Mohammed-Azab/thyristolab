@@ -127,7 +127,7 @@ P_blocking = zeros(1, na);    % Thyristor blocking/leakage losses
 P_switching = zeros(1, na);   % Thyristor switching losses
 P_total = zeros(1, na);       % Total power losses
 charging_time_hours = zeros(1, na);
-SoC_final = [];
+SoC_final = zeros(1, na);
 
 for k = 1:na
     a = deg2rad(alpha_deg(k));
@@ -198,6 +198,7 @@ for k = 1:na
             t_sec = inf;
         end
         charging_time_hours(k) = t_sec/3600;
+        SoC_final(k) = SoC_target;
     else
         t_sec = t_charge;
         SoC_final(k) = min(100, SoC_init + 100*(Iavg(k)*t_sec)/Q_C);
