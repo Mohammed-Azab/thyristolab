@@ -59,9 +59,9 @@ catch
     Rth_ws = 0;
 end
 try
-    alpha = evalin('base', 'alpha');
+    alpha_ws = evalin('base', 'alpha');
 catch
-    alpha = 90;
+    alpha_ws = 90;
 end
 try
     SoC_init_ws = evalin('base', 'SoC_init');
@@ -81,6 +81,7 @@ addParameter(p, 'Rth', Rth_ws, @isnumeric);
 addParameter(p, 'Ileak', 0, @isnumeric); 
 addParameter(p, 't_rise', 0, @isnumeric); 
 addParameter(p, 't_fall', 0, @isnumeric);
+addParameter(p, 'alpha', 0, @isnumeric); 
 addParameter(p, 'enablePlots', enablePlots_ws, @(x) islogical(x) || isnumeric(x));
 parse(p, varargin{:});
 
@@ -94,6 +95,10 @@ Ileak         = p.Results.Ileak;
 t_rise        = p.Results.t_rise;
 t_fall        = p.Results.t_fall;
 enablePlots   = logical(p.Results.enablePlots);
+alpha         = p.Results.alpha;
+
+if isempty(alpha)
+  alpha = alpha_ws;
 
 if isstring(capUnit) || ischar(capUnit)
     if strcmpi(string(capUnit), "Wh")
