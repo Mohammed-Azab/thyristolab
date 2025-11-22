@@ -83,6 +83,9 @@ SoC_target    = p.Results.SoC_target;
 Vt            = p.Results.Vt;
 alpha_deg     = p.Results.alpha_deg;
 Rth           = p.Results.Rth;
+Ileak         = p.Results.Ileak;
+t_rise        = p.Results.t_rise;
+t_fall        = p.Results.t_fall;
 enablePlots   = logical(p.Results.enablePlots);
 
 if isstring(capUnit) || ischar(capUnit)
@@ -282,7 +285,9 @@ end
 fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
 fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
 fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
-fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, p.Results.Ileak, p.Results.t_rise, p.Results.t_fall);
+if ~isempty(Ileak)
+    fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, \n Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, p.Results.Ileak, p.Results.t_rise, p.Results.t_fall);
+end
 fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
 fprintf('======================================================\n');
 
@@ -292,7 +297,7 @@ fprintf('Firing Angle (α)    : %.0f°\n', alpha);
 fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
 fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
 fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));
-if ~isempty(P_loss_avg)
+if ~isempty(Ileak)
     fprintf('Power Loss (SCR)    : %.2f W\n', P_loss_avg(alpha_idx));
 if isempty(t_charge)
     fprintf('Initial SoC         : %.1f%%\n', SoC_init);
