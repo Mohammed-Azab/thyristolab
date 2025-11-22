@@ -395,23 +395,26 @@ fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
 fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
 fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));
 fprintf('\n--- Power Losses ---\n');
-fprintf('Battery Loss        : %.3f W\n', P_batt(alpha_idx));
+fprintf('Battery Loss        : %.3f KW\n', P_batt(alpha_idx)/1000);
 if P_thyristor(alpha_idx) > 0
-    fprintf('Thyristor Conduction: %.3f W\n', P_thyristor(alpha_idx));
-    fprintf('  - Forward drop    : %.3f W\n', Vt*Iavg(alpha_idx));
-    fprintf('  - I²Rth           : %.3f W\n', Rth*Irms(alpha_idx)^2);
+    fprintf('Thyristor Conduction: %.3f KW\n', P_thyristor(alpha_idx)/1000);
+    fprintf('  - Forward drop    : %.3f KW\n', Vt*Iavg(alpha_idx)/1000);
 end
 if P_blocking(alpha_idx) > 0
-    fprintf('Blocking Loss       : %.3f W\n', P_blocking(alpha_idx));
+    fprintf('  - Blocking Loss       : %.3f KW\n', P_blocking(alpha_idx)/1000);
 end
 if P_switching(alpha_idx) > 0
-    fprintf('Switching Loss      : %.3f W\n', P_switching(alpha_idx));
+    fprintf('  - Switching Loss      : %.3f KW\n', P_switching(alpha_idx)/1000);
 end
-fprintf('Total Power Loss    : %.3f W\n', P_total(alpha_idx));
+fprintf('Total Power Loss    : %.3f KW\n', P_total(alpha_idx)/1000);
 if isempty(t_charge)
     fprintf('\nInitial SoC         : %.1f%%\n', SoC_init);
     fprintf('Target SoC          : %.1f%%\n', SoC_target);
-    fprintf('Charging Time       : %.2f hours\n', charging_time_hours(alpha_idx));
+    if charging_time_hours(alpha_idx) >= 0.25
+        fprintf('Charging Time       : %.2f hours\n', charging_time_hours(alpha_idx));
+    else 
+        fprintf('Charging Time       : %.2f Minutes\n', charging_time_hours(alpha_idx)*60);
+    end
 else
     fprintf('\nInitial SoC         : %.1f%%\n', SoC_init);
     fprintf('Final SoC           : %.1f%%\n', SoC_final(alpha_idx));
