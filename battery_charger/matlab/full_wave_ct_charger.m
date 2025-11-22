@@ -37,7 +37,6 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full
 % - See README.md for detailed equations.
 
 % ---------- Load parameters from workspace ----------
-% Try to load specific parameters from workspace, use defaults if not found
 try
     SoC_target_ws = evalin('base', 'SoC_target');
 catch
@@ -383,8 +382,8 @@ end
 fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
 fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
 fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
-if ~isempty(Ileak)
-    fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, \n Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, p.Results.Ileak, p.Results.t_rise, p.Results.t_fall);
+if Vt > 0 || Rth > 0 || Ileak > 0 || t_rise > 0 || t_fall > 0
+    fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, \n Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, Ileak, t_rise, t_fall);
 end
 fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
 fprintf('======================================================\n');
