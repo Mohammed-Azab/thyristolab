@@ -107,6 +107,100 @@ Where:
 - α = firing angle in radians
 - ΔSoC = desired change in State of Charge
 
+### Full-Wave Center-Tapped Rectifier - Detailed Equations
+
+#### Transformer and Voltage Equations
+```
+Vm = √2 × Vrms                    % Peak voltage per half-winding
+V_abs(θ) = Vm × |sin(θ)|          % Rectified voltage magnitude
+v_conv(θ) = V_abs(θ) - Vt         % Converter output (after thyristor drop)
+```
+
+#### Conduction Conditions
+```
+Gate enabled:  θ_mod ≥ α          % Within each half-cycle (0 to π)
+Conduction:    v_conv > Vbat       % Voltage must exceed battery clamp
+```
+
+#### Current Equations
+```
+i_t(θ) = (v_conv(θ) - Vbat) / Rbat    % Instantaneous charging current
+I_avg = (1/2π) ∫[0 to 2π] i_t(θ) dθ   % Average current
+I_rms = √[(1/2π) ∫[0 to 2π] i_t²(θ) dθ]  % RMS current
+```
+
+#### Output Voltage Equations
+```
+v_out(θ) = v_conv(θ)  when conducting, else 0
+V_avg = (1/2π) ∫[0 to 2π] v_out(θ) dθ
+V_rms = √[(1/2π) ∫[0 to 2π] v_out²(θ) dθ]
+```
+
+For ideal resistive load:
+```
+Vdc_ideal = (Vm/π) × (1 + cos(α))
+```
+
+#### Power Loss Equations
+
+**Battery Internal Losses:**
+```
+P_batt = I_rms² × Rbat            % I²R losses in battery resistance
+```
+
+**Thyristor Conduction Losses:**
+```
+P_thyristor = Vt × I_avg + Rth × I_rms²
+
+Components:
+  - Vt × I_avg:     Average loss due to forward voltage drop
+  - Rth × I_rms²:   I²R losses in thyristor on-state resistance
+```
+
+**Thyristor Leakage Losses** (when Ileak > 0):
+```
+During blocking periods:
+P_leak = (1/2π) ∫[blocking] V_blocking(θ) × Ileak dθ
+```
+
+**Thyristor Switching Losses** (when t_rise, t_fall > 0):
+```
+E_on = (1/6) × V_block × I_peak × t_rise
+E_off = (1/6) × V_block × I_peak × t_fall
+P_switching = f × (E_on + E_off)
+```
+
+**Total Power Loss:**
+```
+P_total = P_batt + P_thyristor + P_leak + P_switching
+```
+
+#### Battery Charging Equations
+
+**Capacity Conversion:**
+```
+Q_C = Capacity [Ah] × 3600        % Total charge in Coulombs
+If Capacity in Wh: Capacity_Ah = Capacity_Wh / Vbat
+```
+
+**Charging Time:**
+```
+ΔSoC = (SoC_target - SoC_init) / 100    % Fractional SoC change
+t_charge = (Q_C × ΔSoC) / I_avg         % Time in seconds
+```
+
+**State of Charge Update:**
+```
+SoC_final = SoC_init + 100 × (I_avg × t_charge) / Q_C
+```
+
+#### Circuit Characteristics
+- **Number of Thyristors:** 2 (one per half-winding)
+- **Transformer:** Center-tapped secondary required
+- **Conduction:** Each thyristor conducts for (π - α) per cycle
+- **Frequency:** Output frequency = 2 × supply frequency
+- **Voltage Drop:** Single Vt per half-cycle (one thyristor conducts)
+
 ## Testing
 
 Suggested test cases:
