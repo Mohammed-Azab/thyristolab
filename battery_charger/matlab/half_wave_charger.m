@@ -41,7 +41,7 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_cha
 
 % Parse optional inputs
 p = inputParser;
-addParameter(p, 't_charge', [], @isnumeric);
+addParameter(p, 't_charge', inf, @isnumeric);
 addParameter(p, 'SoC_init', 20, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
 addParameter(p, 'Ileak', 0, @isnumeric);
@@ -70,10 +70,66 @@ charging_time_hours = zeros(size(alpha_deg));
 SoC_final = [];
 P_loss_avg = [];
 
+% TASK 1
+fprintf('Charging currents...\n');
 
+for i = 1 : length(alpha_deg)
+    alpha = alpha_rad(i);
+   % Get Voltage first
+    if alpha >= 0 && alpha <= pi
+        V_avg = (Vm / 2*pi)  *(1 + cos(alpha)) - Vt/2;
+    else
+        V_avg = 0;
+    end
+   % since the voltage HAS to be positive we need to check
 
+   V_avg = max(0,V_avg);
 
+   if V_avg > Vbat % half wave we need to have the ouputvoltage bigger than battery voltage
+       I_charge_conduction = (V_avg - Vbat) / Rbat;
+   else
+       I_avg_charge(i) = 0;
+   end
+   
+   I_avg_charge(i) = max(0,I_avg_charge(i) - Ileak); % to ignore leakage current
 
+end
+
+% TASK 2
+fprintf('Charging times...\n');
+
+if isempty(t_charge)
+    SoC_target = 80;
+    charge_needed_Ah = capacity_Ah * (SoC_target - SoC_init) / 100;
+else
+    charge_needed_Ah = capacity_Ah * 0.6;
+end
+
+for i = 1 : length(alpha_deg)
+    if I_avg_charge(i) > 0
+        charging_time_hours(i) = charge_needed_Ah / I_avg_charge(i);
+    else 
+        charging_time_hours(i) = inf;
+    end
+end
+
+% TASK 3 
+
+fprintf('Final State of Charge...\n');
+
+if ~isempty(t_charge)
+
+    valid_indices = find(I_avg_charge > 0);
+    if ~isempty(valid_indices)
+        optimal_angle = valid_indices(1);
+        I_optimal = I_avg_charge(optimal_angle);
+
+        charge_needed_Ah = I_optimal * (t_charge) / 3600;
+        SoC_final = SoC_init + (charge_needed_Ah / capacity_Ah) * 100;
+    end
+    else
+        SoC_final = SoC_init;
+end
 
 
 
@@ -115,4 +171,6 @@ if ~isempty(SoC_final)
 end
 fprintf('==========================================\n\n');
 
+outputArg1 = inputArg1;
+outputArg2 = inputArg2;
 end
