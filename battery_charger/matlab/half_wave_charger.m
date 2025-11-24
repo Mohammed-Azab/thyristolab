@@ -41,7 +41,7 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg] = half_wave_cha
 
 % Parse optional inputs
 p = inputParser;
-addParameter(p, 't_charge', inf, @isnumeric);
+addParameter(p, 't_charge', [], @isnumeric);
 addParameter(p, 'SoC_init', 20, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
 addParameter(p, 'Ileak', 0, @isnumeric);
@@ -69,15 +69,30 @@ alpha_rad = deg2rad(alpha_deg);
 charging_time_hours = zeros(size(alpha_deg));
 SoC_final = [];
 P_loss_avg = [];
+I_charge = zeros(size(alpha_deg));
 
-% TASK 1
+% Convert capacity from Wh to Coulomb Ah
+if strcmpi(capUnit, 'Wh')
+    capacity_Ah = capacity / Vbat;
+else
+    capacity_Ah = capacity;
+end
+
+% Initialized inputs for option 1 and 2
+nbOfAlphas = numel(alpha_deg);
+charging_time_hours = nan(1, nbOfAlphas);
+SoC_final = nan(1, nbOfAlphas);
+P_loss_avg = nan(nbOfAlphas);
+
+% TASK 1 get charging currents
 fprintf('Charging currents...\n');
+disp("FUNCTION LOADED SUCCESSFULLY")
 
-for i = 1 : length(alpha_deg)
+for i = 1 : nbOfAlphas
     alpha = alpha_rad(i);
    % Get Voltage first
     if alpha >= 0 && alpha <= pi
-        V_avg = (Vm / 2*pi)  *(1 + cos(alpha)) - Vt/2;
+        V_avg = (Vm / (2*pi))  *(1 + cos(alpha)) - Vt/2;
     else
         V_avg = 0;
     end
@@ -86,18 +101,19 @@ for i = 1 : length(alpha_deg)
    V_avg = max(0,V_avg);
 
    if V_avg > Vbat % half wave we need to have the ouputvoltage bigger than battery voltage
-       I_charge_conduction = (V_avg - Vbat) / Rbat;
+       I_charge(i) = (V_avg - Vbat) / Rbat;
    else
-       I_avg_charge(i) = 0;
+       I_charge(i) = 0;
    end
    
-   I_avg_charge(i) = max(0,I_avg_charge(i) - Ileak); % to ignore leakage current
+   I_charge(i) = max(0,I_charge(i) - Ileak); % to ignore leakage current
 
 end
 
-% TASK 2
+% TASK 2 get charging times and SoC when t_charge is not given
 fprintf('Charging times...\n');
 
+% When the t_charge is not given
 if isempty(t_charge)
     SoC_target = 80;
     charge_needed_Ah = capacity_Ah * (SoC_target - SoC_init) / 100;
@@ -106,31 +122,49 @@ else
 end
 
 for i = 1 : length(alpha_deg)
-    if I_avg_charge(i) > 0
-        charging_time_hours(i) = charge_needed_Ah / I_avg_charge(i);
+    if I_charge(i) > 0.001
+        charging_time_hours(i) = charge_needed_Ah / I_charge(i);
     else 
         charging_time_hours(i) = inf;
     end
 end
-
-% TASK 3 
-
+ % when t_charge not give SoC
 fprintf('Final State of Charge...\n');
 
 if ~isempty(t_charge)
 
-    valid_indices = find(I_avg_charge > 0);
+    valid_indices = find(I_charge > 0.001);
     if ~isempty(valid_indices)
         optimal_angle = valid_indices(1);
-        I_optimal = I_avg_charge(optimal_angle);
+        I_optimal = I_charge(optimal_angle);
 
         charge_needed_Ah = I_optimal * (t_charge) / 3600;
         SoC_final = SoC_init + (charge_needed_Ah / capacity_Ah) * 100;
-    end
+        SoC_final = min(SoC_final, 100);
     else
         SoC_final = SoC_init;
+    end
 end
 
+% TASK 3 get SoC in case when the t_charge is given
+
+if ~isempty(t_charge)
+    for i = 1 : nbOfAlphas
+        time_delivered = I_charge(i) * (t_charge / 3600); % Calculate time delivered based on charging current
+        SoC_final  = SoC_init + (time_delivered / capacity_Ah) * 100;
+        SoC_final = min(SoC_final(i),100);
+    end
+end
+
+% TASK 4 get the power loss
+
+fprintf('Power loss...\n');
+
+for i = 1 : nbOfAlphas
+    P_conduction = I_charge(i) * Vt;   
+    P_leak = Vrms * Ileak;    
+    P_loss_avg(i) = P_conduction + P_leak;
+end
 
 
 
@@ -171,6 +205,6 @@ if ~isempty(SoC_final)
 end
 fprintf('==========================================\n\n');
 
-outputArg1 = inputArg1;
-outputArg2 = inputArg2;
+% outputArg1 = inputArg1;
+% outputArg2 = inputArg2;
 end
