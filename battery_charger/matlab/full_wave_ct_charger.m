@@ -43,6 +43,11 @@ catch
     SoC_target_ws = 80; 
 end
 try
+    t_charge_ws = evalin('base', 'SoC_target');
+catch
+    t_charge_ws = 80; 
+end
+try
     alpha_deg_ws = evalin('base', 'alpha_deg');
 catch
     alpha_deg_ws = 0:5:175;
@@ -71,7 +76,7 @@ end
 
 % ---------- Parse inputs ----------
 p = inputParser;
-addParameter(p, 't_charge', [], @isnumeric);
+addParameter(p, 't_charge', t_charge_ws, @isnumeric);
 addParameter(p, 'SoC_init', SoC_init_ws, @isnumeric);
 addParameter(p, 'SoC_target', SoC_target_ws, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
@@ -157,8 +162,10 @@ for k = 1:na
     % Battery internal resistance losses: P = I_rms^2 * Rbat
     P_batt(k) = Irms(k)^2 * Rbat;
     
+    if ~(Ileak == 0)
     % Thyristor conduction losses: P = Vt*I_avg + Rth*I_rms^2
-    P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+        P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+    end
     
     % Thyristor blocking/leakage losses: P = V_blocking * Ileak (average)
     if Ileak > 0
@@ -382,7 +389,7 @@ end
 fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
 fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
 fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
-if Vt > 0 || Rth > 0 || Ileak > 0 || t_rise > 0 || t_fall > 0
+if Vt > 0 || Ileak > 0 || t_rise > 0 || t_fall > 0
     fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, \n Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, Ileak, t_rise, t_fall);
 end
 fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
