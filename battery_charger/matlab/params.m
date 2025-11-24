@@ -1,28 +1,27 @@
 % default battery_charger params
 
 % Supply
-Vrms = 430; 
+Vrms = 230; 
 f = 50;
 
 % Battery
-Vbat = 400; 
+Vbat = 20; 
 Rbat = 0.1; 
 capacity = 50; 
 capUnit = 'Ah';
-SoC_target = 100;
 
 % SoC & time
-SoC_init = 20; 
-SoC_target = 80; 
+SoC_init = 12; 
+SoC_target = 100; 
 t_charge = inf;
 
 % Thyristor
-alpha_deg = 0:5:175; 
-Vt = 0; 
+alpha_deg = 0:2:180; 
+Vt = 10; 
 Rth = 0;
-Ileak = 0; 
-t_rise = 0; 
-t_fall = 0;
+Ileak = 10; 
+t_rise = 10; 
+t_fall = 10;
 
 % Simulation params 
 dt = 1/(300*f);
