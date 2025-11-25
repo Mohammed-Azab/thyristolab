@@ -161,56 +161,406 @@ savePlots = true;
 
 \subsection{Half-Wave Rectifier (half\_wave\_charger.m)}
 
-Due to the length of the code (over 500 lines), the key equations implemented are:
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, capUnit, varargin)
+% Syntax:
+%   [alpha_deg, charging_time_hours] = half_wave_charger(Vrms, f, Vbat, Rbat, capacity, capUnit)
+%   [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = ...
+%       half_wave_charger(..., 't_charge', t_charge, 'SoC_init', SoC_init, 'Vt', Vt, 'Rth', Rth)
+%
+% Inputs:
+%   Vrms        - Supply voltage RMS value [V]
+%   f           - Supply frequency [Hz]
+%   Vbat        - Battery nominal voltage [V]
+%   Rbat        - Battery internal resistance [Ohm]
+%   capacity    - Battery capacity value
+%   capUnit     - Battery capacity unit 'Ah' or 'Wh'
+%
+% Name-Value Optional Inputs:
+%   't_charge'  - Charging time [Hours].
+%   'SoC_init'  - Initial state of charge [%]
+%   'Vt'        - Thyristor forward drop [V]
+%   'Rth'       - Equivalent on-state resistance of thyristor [Ohm]
+%   'Ileak'     - Reverse leakage Current [A]
+%   't_rise'    - Rise time [s]
+%   't_fall'    - Fall time[s]
+%   'alpha_deg' - Vector of firing angles to analyze [deg] (for sweep analysis)
+%   'alpha'     - Single firing angle [deg] (for detailed waveform plots)
+%   'SoC_target'- Target state of charge [%]
+%   'enablePlots'- Enable/disable all plots [boolean]
+%
+% Outputs:
+%   alpha_deg           - Analyzed firing angles [deg] (vector)
+%   charging_time_hours - Charging time for each alpha [h] (vector, same size as alpha_deg)
+%   SoC_final           - Final SoC if 't_charge' provided [%] (vector)
+%   P_loss_avg          - Average SCR conduction loss for each alpha [W] (vector)
+%   metrics             - Struct with fields per alpha: Vavg, Vrms, Iavg, Irms,
+%                         P_batt, P_thyristor, P_blocking, P_switching, P_total
 
-\begin{itemize}
-    \item Average output voltage: $V_{dc} = \frac{V_m}{2\pi}(1+\cos\alpha) - V_t$
-    \item Charging current: $I_{charge} = \frac{V_{dc} - V_{bat}}{R_{bat}}$
-    \item Power losses: $P_{thyristor} = V_t I_{avg} + R_{th} I_{rms}^2$
-    \item Battery losses: $P_{batt} = I_{rms}^2 R_{bat}$
-    \item State of charge: $SoC(t) = SoC_{init} + \frac{100 \cdot I_{avg} \cdot t}{Q_{capacity}}$
-\end{itemize}
+% ---------- Load parameters from workspace ----------
+try
+    SoC_target_ws = evalin('base', 'SoC_target');
+catch
+    SoC_target_ws = 80; 
+end
+try
+    t_charge_ws = evalin('base', 't_charge');
+    if isinf(t_charge_ws)
+        t_charge_ws = [];
+    end
+catch
+    t_charge_ws = []; 
+end
+try
+    alpha_deg_ws = evalin('base', 'alpha_deg');
+catch
+    alpha_deg_ws = 0:5:175;
+end
+try
+    enablePlots_ws = evalin('base', 'enablePlots');
+catch
+    enablePlots_ws = false; 
+end
+try
+    savePlots_ws = evalin('base', 'savePlots');
+catch
+    savePlots_ws = false;
+end
+try
+    Rth_ws = evalin('base', 'Rth');
+catch
+    Rth_ws = 0;
+end
+try
+    alpha_ws = evalin('base', 'alpha');
+catch
+    alpha_ws = 90;
+end
+try
+    SoC_init_ws = evalin('base', 'SoC_init');
+catch
+    SoC_init_ws = 20;
+end
 
-The function generates comprehensive waveform plots including voltages, currents, power losses, and SoC profiles for different firing angles.
+% ---------- Parse inputs ----------
+p = inputParser;
+addParameter(p, 't_charge', t_charge_ws, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
+addParameter(p, 'SoC_init', SoC_init_ws, @isnumeric);
+addParameter(p, 'SoC_target', SoC_target_ws, @isnumeric);
+addParameter(p, 'Vt', 0, @isnumeric);
+addParameter(p, 'alpha_deg', alpha_deg_ws, @(x) isnumeric(x) && isvector(x));
+addParameter(p, 'Rth', Rth_ws, @isnumeric);
+addParameter(p, 'Ileak', 0, @isnumeric); 
+addParameter(p, 't_rise', 0, @isnumeric); 
+addParameter(p, 't_fall', 0, @isnumeric);
+addParameter(p, 'alpha', alpha_ws, @isnumeric); 
+addParameter(p, 'enablePlots', enablePlots_ws, @(x) islogical(x) || isnumeric(x));
+addParameter(p, 'savePlots', savePlots_ws, @(x) islogical(x) || isnumeric(x));
+parse(p, varargin{:});
+
+t_charge      = p.Results.t_charge;
+SoC_init      = p.Results.SoC_init;
+SoC_target    = p.Results.SoC_target;
+Vt            = p.Results.Vt;
+alpha_deg     = p.Results.alpha_deg;
+Rth           = p.Results.Rth;
+Ileak         = p.Results.Ileak;
+t_rise        = p.Results.t_rise;
+t_fall        = p.Results.t_fall;
+enablePlots   = logical(p.Results.enablePlots);
+savePlots     = logical(p.Results.savePlots);
+alpha         = p.Results.alpha;
+
+if isstring(capUnit) || ischar(capUnit)
+    if strcmpi(string(capUnit), "Wh")
+        capacity = capacity / Vbat; % Wh -> Ah
+    end
+end
+
+t_charge = t_charge*3600; % convert to Seconds
+
+% ---------- Constants ----------
+Vm = sqrt(2) * Vrms; % Peak voltage
+
+% ---------- Sampling ----------
+N = 4096;
+theta = linspace(0, 2*pi, N+1); theta(end) = []; % exclude endpoint
+
+% Half-wave: source voltage (positive half only, zero for negative)
+V_source = Vm * sin(theta);
+V_source(V_source < 0) = 0;  % Rectification
+
+Q_C  = capacity * 3600;     % Ah -> Coulombs
+
+% ---------- Outputs ----------
+na = numel(alpha_deg);
+Vavg = zeros(1, na);
+Vout_rms = zeros(1, na);
+Iavg = zeros(1, na);
+Irms = zeros(1, na);
+P_loss_avg = zeros(1, na);
+P_batt = zeros(1, na);        % Battery internal losses
+P_thyristor = zeros(1, na);   % Thyristor conduction losses
+P_blocking = zeros(1, na);    % Thyristor blocking/leakage losses
+P_switching = zeros(1, na);   % Thyristor switching losses
+P_total = zeros(1, na);       % Total power losses
+charging_time_hours = zeros(1, na);
+SoC_final = zeros(1, na);
+
+for k = 1:na
+    a = deg2rad(alpha_deg(k));
+
+    % Gate available only in positive half-cycle after firing angle
+    gate = (theta >= a) & (theta <= pi);
+
+    v_conv = V_source - Vt;
+    v_conv(v_conv < 0) = 0;
+
+    % Conduction only when above battery clamp
+    cond  = v_conv > Vbat;
+
+    i_t = zeros(size(theta));
+    on  = gate & cond;
+    i_t(on) = (v_conv(on) - Vbat) ./ Rbat;
+
+    v_out = zeros(size(theta));
+    v_out(on) = v_conv(on);
+
+    Vavg(k) = mean(v_out);
+    Vout_rms(k) = sqrt(mean(v_out.^2));
+    Iavg(k) = mean(i_t);
+    Irms(k) = sqrt(mean(i_t.^2));
+
+    % Power Loss Calculations
+    P_batt(k) = Irms(k)^2 * Rbat;
+    
+    if ~(Ileak == 0)
+        P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+    end
+    
+    if Ileak > 0
+        v_blocking = V_source;
+        v_blocking(on) = 0;  % Zero when conducting
+        P_blocking(k) = mean(v_blocking) * Ileak;
+    else
+        P_blocking(k) = 0;
+    end
+    
+    if (t_rise > 0 || t_fall > 0) && Irms(k) > 0
+        I_peak = max(i_t);
+        V_block_avg = mean(V_source(~on));
+        if isnan(V_block_avg)
+            V_block_avg = Vm;
+        end
+        E_on = (1/6) * V_block_avg * I_peak * t_rise;
+        E_off = (1/6) * V_block_avg * I_peak * t_fall;
+        P_switching(k) = f * (E_on + E_off);
+    else
+        P_switching(k) = 0;
+    end
+    
+    P_total(k) = P_batt(k) + P_thyristor(k) + P_blocking(k) + P_switching(k);
+    P_loss_avg(k) = P_thyristor(k);
+
+    if isempty(t_charge) || isinf(t_charge)
+        dSoC = max(SoC_target - SoC_init, 0)/100; 
+        if Iavg(k) > 0
+            t_sec = (Q_C * dSoC) / Iavg(k);
+        else
+            t_sec = inf;
+        end
+        charging_time_hours(k) = t_sec/3600;
+        SoC_final(k) = SoC_target;
+    else
+        t_sec = t_charge;
+        SoC_final(k) = min(100, SoC_init + 100*(Iavg(k)*t_sec)/Q_C);
+        charging_time_hours(k) = t_sec/3600;
+    end
+end
+
+metrics = struct('Vavg', Vavg, 'Vrms', Vout_rms, 'Iavg', Iavg, 'Irms', Irms, ...
+                 'P_batt', P_batt, 'P_thyristor', P_thyristor, ...
+                 'P_blocking', P_blocking, 'P_switching', P_switching, 'P_total', P_total);
+
+[~, alpha_idx] = min(abs(alpha_deg - alpha));
+
+% Create output directory if savePlots is enabled
+if savePlots
+    output_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'figures', 'half_wave');
+    if ~exist(output_dir, 'dir')
+        mkdir(output_dir);
+    end
+end
+
+% Plotting and display code follows...
+% (Abbreviated for space - full implementation includes comprehensive plotting)
+
+end
+\end{lstlisting}
 
 \subsection{Full-Wave Center-Tapped (full\_wave\_ct\_charger.m)}
 
-Key differences from half-wave configuration:
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full_wave_ct_charger(Vrms, f, Vbat, Rbat, capacity, capUnit, varargin)
+% Full-wave center-tapped rectifier implementation
+% Similar structure to half_wave_charger but with key differences:
+% - Uses absolute value of sine wave: V_abs = Vm * abs(sin(theta))
+% - Output frequency doubled (100 Hz ripple vs 50 Hz)
+% - Average voltage: Vdc = (2*Vm/pi) * (1 + cos(alpha)) - Vt
+% - One thyristor drop per conduction path
 
-\begin{itemize}
-    \item Average output voltage: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - V_t$
-    \item Double the output frequency (100 Hz ripple vs 50 Hz)
-    \item Uses two thyristors with center-tapped transformer
-    \item One thyristor drop per conduction path
-    \item Improved performance: higher average voltage and reduced charging time
-\end{itemize}
+% Parameter parsing and initialization similar to half_wave_charger
+% ... (full implementation with same structure)
+
+% Key difference: Full-wave rectification
+V_abs = Vm * abs(sin(theta));
+theta_mod = mod(theta, pi);
+
+for k = 1:na
+    a = deg2rad(alpha_deg(k));
+    
+    % Gate available when theta_mod >= a within each half-cycle
+    gate = theta_mod >= a & theta_mod <= pi;
+    
+    v_conv = (V_abs - Vt);
+    cond = v_conv > Vbat;
+    
+    i_t = zeros(size(theta));
+    on = gate & cond;
+    i_t(on) = (v_conv(on) - Vbat) ./ Rbat;
+    
+    v_out = zeros(size(theta));
+    v_out(on) = v_conv(on);
+    
+    % Calculate metrics and losses
+    Vavg(k) = mean(v_out);
+    Vout_rms(k) = sqrt(mean(v_out.^2));
+    Iavg(k) = mean(i_t);
+    Irms(k) = sqrt(mean(i_t.^2));
+    
+    % Power loss calculations
+    P_batt(k) = Irms(k)^2 * Rbat;
+    if ~(Ileak == 0)
+        P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+    end
+    
+    % ... (remaining calculations similar to half_wave)
+end
+
+% Plotting and output similar to half_wave_charger
+end
+\end{lstlisting}
 
 \subsection{Full-Wave Bridge (full\_wave\_bridge\_charger.m)}
 
-Bridge configuration characteristics:
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+function [alpha_deg, charging_time_hours, SoC_vec, P_loss_vec] = full_wave_bridge_charger(Vrms, f, Vbat, Rbat, capacity, capUnit, varargin)
+% FULL_WAVE_BRIDGE_CHARGER Analyzes full-wave bridge controlled rectifier
+% Bridge configuration with 4 thyristors
+% Two thyristor drops in series: Vdc = (2*Vm/pi)*(1+cos(alpha)) - 2*Vt
 
-\begin{itemize}
-    \item Average output voltage: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - 2V_t$
-    \item Uses four thyristors in bridge configuration
-    \item Standard transformer (no center-tap required)
-    \item Two thyristor drops in series during conduction
-    \item Electrically equivalent to center-tapped but mechanically simpler
-    \item More complex gate drive circuit required
-\end{itemize}
+p = inputParser;
+addParameter(p, 't_charge', inf, @isnumeric);
+addParameter(p, 'SoC_init', 20, @isnumeric);
+addParameter(p, 'Vt', 0, @isnumeric);
+addParameter(p, 'Ileak', 0, @isnumeric);
+addParameter(p, 't_rise', 0, @isnumeric);
+addParameter(p, 't_fall', 0, @isnumeric);
+addParameter(p, 'alpha_given', [], @isnumeric);
+parse(p, varargin{:});
 
-\subsection{Code Features}
+t_charge = p.Results.t_charge;
+SoC_init = p.Results.SoC_init;
+Vt = p.Results.Vt;
+Ileak = p.Results.Ileak;
 
-All functions implement:
+Vm = sqrt(2) * Vrms;
+omega = 2 * pi * f;
 
-\begin{itemize}
-    \item Flexible input parsing with name-value pairs
-    \item Support for both fixed charging duration and target SoC scenarios
-    \item Comprehensive power loss analysis (conduction, blocking, switching)
-    \item Automatic figure generation with LaTeX formatting
-    \item Export to both PNG (300 DPI) and FIG formats
-    \item Detailed console output with system parameters and performance metrics
-    \item Comparison plots across different firing angles
-    \item Battery state-of-charge tracking over time
-\end{itemize}
+alpha_deg = 0:5:150;
+alpha_rad = deg2rad(alpha_deg);
+
+switch lower(string(capUnit))
+    case "ah"
+        Q_tot = capacity * 3600;
+    case "wh"
+        E_tot = capacity * 3600;
+        Q_tot = E_tot / Vbat;
+    otherwise
+        error('capUnit must be ''Ah'' or ''Wh''.');
+end
+
+SoC_target = 80;
+Q_init = (SoC_init/100) * Q_tot;
+
+nAlpha = numel(alpha_deg);
+charging_time_hours = nan(1, nAlpha);
+SoC_vec = nan(1, nAlpha);
+P_loss_vec = nan(1, nAlpha);
+
+nonideal_SCR = ~all(ismember({'Vt','Ileak','t_rise','t_fall'}, p.UsingDefaults));
+
+for k = 1:nAlpha
+    alpha = alpha_rad(k);
+    Vdc_ideal = (Vm/pi) * (1+cos(alpha));
+    Vdc_eff = Vdc_ideal - 2*Vt;  % Two thyristor drops
+    I_charge = (Vdc_eff - Vbat) / Rbat;
+    
+    if I_charge <= 0 || Vdc_eff <= Vbat
+        charging_time_hours(k) = Inf;
+        if nonideal_SCR
+            P_loss_vec(k) = Vrms * Ileak;
+        else
+            P_loss_vec(k) = 0;
+        end
+        continue;
+    end
+
+    if isinf(t_charge)
+        dSoC = SoC_target - SoC_init;
+        if dSoC <= 0
+            t_req = 0;
+            SoC_vec(k) = SoC_init;
+        else
+            dQ = (dSoC/100) * Q_tot;
+            t_req = dQ / I_charge;
+            SoC_vec(k) = SoC_target;
+        end
+        charging_time_hours(k) = t_req / 3600;
+    else
+        dQ = I_charge * t_charge;
+        SoC_f = SoC_init + 100 * (dQ / Q_tot);
+        SoC_f = min(max(SoC_f, 0), 100);
+        SoC_vec(k) = SoC_f;
+        
+        dQ_req = (SoC_target - SoC_init)/100 * Q_tot;
+        if dQ_req <= 0
+            t_req = 0;
+        else
+            t_req = dQ_req / I_charge;
+        end
+        charging_time_hours(k) = t_req / 3600;
+    end
+
+    if nonideal_SCR
+        P_cond = 2 * Vt * I_charge;
+        P_leak = Vrms * Ileak;
+        P_loss_vec(k) = P_cond + P_leak;
+    else
+        P_loss_vec(k) = 0;
+    end
+end
+
+% Generate output plots
+figure('Name', 'Full-Wave Bridge Rectifier - Firing Angle vs Charging Time');
+plot(alpha_deg, charging_time_hours, 'g-d', 'LineWidth', 2);
+grid on;
+xlabel('Firing Angle \alpha (degrees)');
+ylabel('Charging Time (hours)');
+title('Full-Wave Bridge Controlled Rectifier for Battery Charging');
+legend('Charging Time');
+
+end
+\end{lstlisting}
 
 \end{document}
