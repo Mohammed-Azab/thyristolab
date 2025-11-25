@@ -405,9 +405,9 @@ if enablePlots
         plot(alpha_deg, P_total, 'k--', 'LineWidth', 3, 'Marker', 'pentagram', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
         hold off;
         
-        leg_entries = {'$P_{\\mathrm{batt}} = I_{\\mathrm{rms}}^2 R_{\\mathrm{bat}}$', '$P_{\\mathrm{th,cond}} = V_t I_{\\mathrm{avg}} + R_{\\mathrm{th}} I_{\\mathrm{rms}}^2$'};
+        leg_entries = {'$P_{\\\\mathrm{batt}} = I_{\\\\mathrm{rms}}^2 R_{\\\\mathrm{bat}}$', '$P_{\\\\mathrm{th,cond}} = V_t I_{\\\\mathrm{avg}} + R_{\\\\mathrm{th}} I_{\\\\mathrm{rms}}^2$'};
         if any(P_blocking > 0)
-            leg_entries{end+1} = '$P_{\\mathrm{block}} = V_{\\mathrm{block}} I_{\\mathrm{leak}}$';
+            leg_entries{end+1} = '$P_{\\\\mathrm{block}} = V_{\\\\mathrm{block}} I_{\\\\mathrm{leak}}$';
         end
         if any(P_switching > 0)
             leg_entries{end+1} = '$P_{\\mathrm{switch}}$';
@@ -418,7 +418,7 @@ if enablePlots
     else
         % Plot only battery losses if thyristor losses are negligible
         plot(alpha_deg, P_batt, 'b-', 'LineWidth', 2.5, 'MarkerFaceColor', 'b');
-        legend('$P_{\\mathrm{batt}} = I_{\\mathrm{rms}}^2 R_{\\mathrm{bat}}$', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
+        legend('$P_{\\\\mathrm{batt}} = I_{\\\\mathrm{rms}}^2 R_{\\\\mathrm{bat}}$', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
         title('Battery Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
     end
     grid on;
