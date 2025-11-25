@@ -1,173 +1,158 @@
-\section{Part I: Results and Analysis}
+\section{Results and Analysis}
+
+\subsection{System Parameters}
+
+\begin{table}[H]
+\centering
+\caption{System Parameters}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\ \midrule
+Supply Voltage (RMS) & 230 V \\
+Supply Frequency & 50 Hz \\
+Battery Voltage & 20 V \\
+Internal Resistance & 0.1 $\Omega$ \\
+Battery Capacity & 50 Ah \\
+Initial SoC & 12 \% \\
+Target SoC & 100 \% \\
+Thyristor Forward Drop & 1.5 V \\ \bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Half-Wave Rectifier Results}
 
-\subsubsection{Firing Angle vs. Charging Time}
-\TODO{Insert your main result plot}
+Figure \ref{fig:half_wave_waveforms} shows voltage waveforms at $\alpha = 30^\circ$. Output consists of controlled positive half-cycles with conduction from firing angle to end of positive cycle.
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{half_wave_alpha_vs_time.png}
-    \caption{Firing angle vs. charging time for half-wave rectifier}
-    \label{fig:half_wave_results}
-\end{figure}
-
-\TODO{Describe the plot:}
-\begin{itemize}
-    \item Trend observed (increasing $\alpha$ increases charging time)
-    \item Physical explanation
-    \item Key observations from the curve
-\end{itemize}
-
-\subsubsection{Output Voltage and Current Waveforms}
-\TODO{Show representative waveforms for different firing angles}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.45\textwidth}
-        % \includegraphics[width=\textwidth]{half_wave_alpha_30.png}
-        \caption{$\alpha = 30°$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.45\textwidth}
-        % \includegraphics[width=\textwidth]{half_wave_alpha_90.png}
-        \caption{$\alpha = 90°$}
-    \end{subfigure}
-    \caption{Output voltage and current waveforms for half-wave rectifier}
+    \includegraphics[width=0.75\textwidth]{../battery_charger/figures/half_wave/half_wave_voltages_alpha_30.png}
+    \caption{Half-wave rectifier voltages at $\alpha = 30^\circ$}
     \label{fig:half_wave_waveforms}
 \end{figure}
 
-\subsubsection{Performance Metrics}
-\TODO{Create table with key metrics:}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../battery_charger/figures/half_wave/half_wave_currents_alpha_30.png}
+    \caption{Half-wave rectifier currents at $\alpha = 30^\circ$}
+    \label{fig:half_wave_currents}
+\end{figure}
 
-\begin{table}[H]
-\centering
-\caption{Half-Wave Rectifier Performance Metrics}
-\label{tab:half_wave_metrics}
-\begin{tabular}{@{}lllll@{}}
-\toprule
-\textbf{Firing Angle} & \textbf{$V_{dc}$ (V)} & \textbf{$I_{dc}$ (A)} & \textbf{Charging Time (h)} & \textbf{Efficiency (\%)} \\ \midrule
-$0°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$30°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$60°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$90°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$120°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
-\end{tabular}
-\end{table}
+Figure \ref{fig:half_wave_time} shows charging time increases exponentially with firing angle due to reduced average voltage and current.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/half_wave/half_wave_charging_time_vs_alpha.png}
+    \caption{Charging time vs firing angle (half-wave)}
+    \label{fig:half_wave_time}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/half_wave/half_wave_power_losses_vs_alpha.png}
+    \caption{Power losses vs firing angle (half-wave)}
+    \label{fig:half_wave_losses}
+\end{figure}
 
 \subsection{Full-Wave Center-Tapped Rectifier Results}
 
-\subsubsection{Firing Angle vs. Charging Time}
-\TODO{Insert your main result plot}
+Full-wave configuration produces two output pulses per AC cycle, significantly improving performance.
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{full_wave_ct_alpha_vs_time.png}
-    \caption{Firing angle vs. charging time for center-tapped rectifier}
-    \label{fig:full_wave_ct_results}
+    \includegraphics[width=0.75\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_voltages_alpha_30.png}
+    \caption{Full-wave CT voltages at $\alpha = 30^\circ$}
+    \label{fig:ct_voltages}
 \end{figure}
 
-\subsubsection{Output Voltage and Current Waveforms}
-\TODO{Show representative waveforms}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_currents_alpha_30.png}
+    \caption{Full-wave CT currents at $\alpha = 30^\circ$}
+    \label{fig:ct_currents}
+\end{figure}
 
-\subsubsection{Performance Metrics}
-\TODO{Create similar table as above}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_charging_time_vs_alpha.png}
+    \caption{Charging time vs firing angle (full-wave CT)}
+    \label{fig:ct_time}
+\end{figure}
 
-\begin{table}[H]
-\centering
-\caption{Full-Wave Center-Tapped Rectifier Performance Metrics}
-\label{tab:full_wave_ct_metrics}
-\begin{tabular}{@{}lllll@{}}
-\toprule
-\textbf{Firing Angle} & \textbf{$V_{dc}$ (V)} & \textbf{$I_{dc}$ (A)} & \textbf{Charging Time (h)} & \textbf{Efficiency (\%)} \\ \midrule
-$0°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$30°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$60°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$90°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-$120°$ & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
-\end{tabular}
-\end{table}
+Full-wave achieves approximately 50\% faster charging compared to half-wave for all firing angles.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_power_losses_vs_alpha.png}
+    \caption{Power losses vs firing angle (full-wave CT)}
+    \label{fig:ct_losses}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_soc_vs_time_target_soc.png}
+    \caption{SoC progression for different firing angles (target SoC scenario)}
+    \label{fig:ct_soc}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_soc_vs_time_fixed_duration.png}
+    \caption{SoC progression for different firing angles (fixed charging duration)}
+    \label{fig:ct_soc_fixed}
+\end{figure}
+
+\subsection{Half-Wave SoC Analysis}
+
+Figure \ref{fig:hw_soc_fixed} shows battery state of charge progression over time for the half-wave rectifier with fixed charging duration. Different firing angles result in varying final SoC levels, with smaller angles achieving higher charge levels in the same time period.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{half_wave_soc_vs_time_fixed_duration.png}
+    \caption{Half-wave SoC vs time (fixed charging duration)}
+    \label{fig:hw_soc_fixed}
+\end{figure}
 
 \subsection{Full-Wave Bridge Rectifier Results}
 
-\subsubsection{Firing Angle vs. Charging Time}
-\TODO{Insert your main result plot}
+The bridge configuration uses four thyristors and provides performance similar to the center-tapped design but with a standard (non-center-tapped) transformer.
+
+\subsubsection{Charging Time Analysis}
+
+Figure \ref{fig:bridge_time} illustrates how charging time varies with firing angle for the bridge rectifier. The relationship is similar to other configurations, with charging time increasing exponentially as the firing angle approaches $90^\circ$ due to reduced average output voltage and current.
 
 \begin{figure}[H]
     \centering
-    % \includegraphics[width=0.8\textwidth]{full_wave_bridge_alpha_vs_time.png}
-    \caption{Firing angle vs. charging time for bridge rectifier}
-    \label{fig:full_wave_bridge_results}
-\end{figure}
-
-\subsubsection{Output Voltage and Current Waveforms}
-\TODO{Show representative waveforms}
-
-\subsubsection{Performance Metrics}
-\TODO{Create similar table as above}
-
-\subsection{Comparative Analysis}
-
-\subsubsection{Side-by-Side Comparison}
-\TODO{Create comparative plot with all three configurations}
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.8\textwidth]{comparison_all_configs.png}
-    \caption{Comparison of firing angle vs. charging time for all configurations}
-    \label{fig:comparison_all}
-\end{figure}
-
-\subsubsection{Performance Comparison Table}
-\TODO{Compare all three at same firing angle}
-
-\begin{table}[H]
-\centering
-\caption{Comparison of Rectifier Configurations at $\alpha = 60°$}
-\label{tab:comparison}
-\begin{tabular}{@{}llllll@{}}
-\toprule
-\textbf{Configuration} & \textbf{$V_{dc}$ (V)} & \textbf{$I_{dc}$ (A)} & \textbf{Time (h)} & \textbf{$\eta$ (\%)} & \textbf{Ripple} \\ \midrule
-Half-Wave & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{High} \\
-Full-Wave CT & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{Medium} \\
-Full-Wave Bridge & \TODO{} & \TODO{} & \TODO{} & \TODO{} & \TODO{Medium} \\ \bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Optional Results}
-
-\subsubsection{State of Charge Progression}
-\TODO{If implemented, show SoC vs. time plots}
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.8\textwidth]{soc_vs_time.png}
-    \caption{State of Charge progression during charging}
-    \label{fig:soc_progression}
+    \includegraphics[width=0.8\textwidth]{graph1.png}
+    \caption{Bridge rectifier charging time vs firing angle}
+    \label{fig:bridge_time}
 \end{figure}
 
 \subsubsection{Power Loss Analysis}
-\TODO{If implemented, show power loss calculations}
 
-\begin{table}[H]
-\centering
-\caption{Average Power Losses in Different Configurations}
-\label{tab:power_losses}
-\begin{tabular}{@{}lllll@{}}
-\toprule
-\textbf{Configuration} & \textbf{Conduction Loss (W)} & \textbf{Switching Loss (W)} & \textbf{Total Loss (W)} & \textbf{Efficiency (\%)} \\ \midrule
-Half-Wave & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-Full-Wave CT & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
-Full-Wave Bridge & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\ \bottomrule
-\end{tabular}
-\end{table}
+Figure \ref{fig:bridge_losses} shows power losses as a function of firing angle. The bridge configuration exhibits two thyristor drops per conduction path (compared to one in center-tapped), resulting in slightly higher conduction losses. Power losses generally decrease with increasing firing angle due to reduced current flow.
 
-\subsection{Observations}
-\TODO{List key observations from your results:}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graph2.png}
+    \caption{Bridge rectifier power losses vs firing angle}
+    \label{fig:bridge_losses}
+\end{figure}
+
+\subsection{Comparative Analysis}
+
+\subsubsection{Performance Comparison}
+
 \begin{enumerate}
-    \item Effect of firing angle on charging time
-    \item Comparison of half-wave vs. full-wave performance
-    \item Difference between center-tapped and bridge configurations
-    \item Impact of thyristor non-idealities (if modeled)
-    \item Practical considerations for each configuration
+    \item \textbf{Half-Wave}: Simplest (one thyristor), slowest charging, highest ripple
+    \item \textbf{Full-Wave CT}: Two thyristors + center-tapped transformer, 50\% faster charging, reduced ripple
+    \item \textbf{Full-Wave Bridge}: Four thyristors + standard transformer, similar performance to CT, no center-tap required
 \end{enumerate}
+
+\subsubsection{Key Observations}
+\begin{itemize}
+    \item Firing angle provides flexible control of charging current
+    \item Low firing angles ($\alpha < 60^\circ$) enable fast charging but higher losses
+    \item Full-wave configurations significantly superior for practical applications
+    \item Thyristor forward drop has measurable impact on performance
+    \item SoC tracking enables intelligent charging strategies
+\end{itemize}
