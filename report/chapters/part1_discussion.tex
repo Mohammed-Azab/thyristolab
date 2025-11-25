@@ -11,7 +11,7 @@ Increasing firing angle significantly increases charging time because:
     \item Relationship is highly nonlinear with exponential growth as $\alpha \to 180°$
 \end{itemize}
 
-Practical firing angles: 0° to 90°. Beyond 90°, output voltage too low for effective charging.
+Practical firing angles: $0^\circ$ to $90^\circ$. Beyond $90^\circ$, output voltage too low for effective charging.
 
 \subsubsection{Half-Wave vs Full-Wave}
 Full-wave rectifiers are clearly superior:
@@ -49,7 +49,7 @@ Power loss analysis shows battery internal resistance dominates at high currents
 \subsection{Design Recommendations}
 
 \begin{enumerate}
-    \item \textbf{Industrial Applications}: Use full-wave bridge, operate at $\alpha = 15°-45°$, implement SoC-based control
+    \item \textbf{Industrial Applications}: Use full-wave bridge, operate at $\alpha = 15^\circ$--$45^\circ$, implement SoC-based control
     \item \textbf{Cost-Sensitive}: Consider half-wave if time not critical, optimize for balance of performance and stress
     \item \textbf{High-Efficiency}: Select low $V_t$ thyristors, optimize firing angle, consider active cooling for high power
 \end{enumerate}
@@ -75,14 +75,6 @@ Power loss analysis shows battery internal resistance dominates at high currents
     \item Thermal considerations
 \end{itemize}
 
-\subsubsection{Protection Requirements}
-\TODO{Identify necessary protection mechanisms:}
-\begin{itemize}
-    \item Overcurrent protection
-    \item Overvoltage protection (snubber circuits)
-    \item Battery reverse polarity protection
-    \item Thermal protection
-\end{itemize}
 
 \subsection{Limitations of the Analysis}
 
