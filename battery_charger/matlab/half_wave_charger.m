@@ -290,7 +290,7 @@ if enablePlots
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
     ylabel('Voltage (V)', 'Interpreter', 'latex', 'FontSize', 14); 
-    legend('$V_{\\mathrm{rect}}$', '$V_{\\mathrm{bat}}$', '$V_{\\mathrm{out}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+    legend('$V_{\rm rect}$', '$V_{\rm bat}$', '$V_{\rm out}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
     title('Source \& Output Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
@@ -298,7 +298,7 @@ if enablePlots
     grid on; 
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
-    ylabel('$V_{\\mathrm{th}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel('$V_{\rm th}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
     title('Thyristor Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
@@ -306,12 +306,15 @@ if enablePlots
     grid on; 
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
-    ylabel('$V_{\\mathrm{out}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel('$V_{\rm out}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
     title('Output Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     if savePlots
-        saveas(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.png', round(alpha))));
-        savefig(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.fig', round(alpha))));
+        drawnow;
+        exportgraphics(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.png', round(alpha))), 'Resolution', 300);
+        if isvalid(fig1) && isgraphics(fig1, 'figure')
+            savefig(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.fig', round(alpha))));
+        end
     end
     
     % Figure 2: Currents
@@ -324,7 +327,7 @@ if enablePlots
     grid on; 
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
-    ylabel('$I_{\\mathrm{batt}}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel('$I_{\rm batt}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
     title('Battery Current', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
@@ -332,18 +335,18 @@ if enablePlots
     grid on; 
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
-    ylabel('$I_{\\mathrm{th}}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel('$I_{\rm th}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
     title('Thyristor Current', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile;
     if Ileak > 0 || Rth > 0 || Vt > 0
         plot(t_ms, p_batt_inst, 'b-', t_ms, p_thyristor_inst, 'r-', ...
              t_ms, p_blocking_inst, 'g-', t_ms, p_total_inst, 'k--', 'LineWidth', 2);
-        legend('$P_{\\mathrm{batt}}$', '$P_{\\mathrm{thyristor}}$', '$P_{\\mathrm{blocking}}$', '$P_{\\mathrm{total}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+        legend('$P_{\rm batt}$', '$P_{\rm thyristor}$', '$P_{\rm blocking}$', '$P_{\rm total}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
         title('Instantaneous Power Losses', 'Interpreter', 'latex', 'FontSize', 14);
     else
         plot(t_ms, p_batt_inst, 'b-', 'LineWidth', 2);
-        legend('$P_{\\mathrm{batt}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+        legend('$P_{\rm batt}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
         title('Instantaneous Battery Power Loss', 'Interpreter', 'latex', 'FontSize', 14);
     end
     grid on; 
@@ -352,8 +355,11 @@ if enablePlots
     ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 14);
     
     if savePlots
-        saveas(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.png', round(alpha))));
-        savefig(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.fig', round(alpha))));
+        drawnow;
+        exportgraphics(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.png', round(alpha))), 'Resolution', 300);
+        if isvalid(fig2) && isgraphics(fig2, 'figure')
+            savefig(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.fig', round(alpha))));
+        end
     end
     
 end
@@ -384,8 +390,11 @@ if enablePlots && (isempty(t_charge) || isinf(t_charge))
     
     if savePlots
         fig_temp = gcf;
-        saveas(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.png'));
-        savefig(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.fig'));
+        drawnow;
+        exportgraphics(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.png'), 'Resolution', 300);
+        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+            savefig(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.fig'));
+        end
     end
 end
 
@@ -405,20 +414,20 @@ if enablePlots
         plot(alpha_deg, P_total, 'k--', 'LineWidth', 3, 'Marker', 'pentagram', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
         hold off;
         
-        leg_entries = {'$P_{\\\\mathrm{batt}} = I_{\\\\mathrm{rms}}^2 R_{\\\\mathrm{bat}}$', '$P_{\\\\mathrm{th,cond}} = V_t I_{\\\\mathrm{avg}} + R_{\\\\mathrm{th}} I_{\\\\mathrm{rms}}^2$'};
+        leg_entries = {'$P_{\rm batt} = I_{\rm rms}^2 R_{\rm bat}$', '$P_{\rm th,cond} = V_t I_{\rm avg} + R_{\rm th} I_{\rm rms}^2$'};
         if any(P_blocking > 0)
-            leg_entries{end+1} = '$P_{\\\\mathrm{block}} = V_{\\\\mathrm{block}} I_{\\\\mathrm{leak}}$';
+            leg_entries{end+1} = '$P_{\rm block} = V_{\rm block} I_{\rm leak}$';
         end
         if any(P_switching > 0)
-            leg_entries{end+1} = '$P_{\\mathrm{switch}}$';
+            leg_entries{end+1} = '$P_{\rm switch}$';
         end
-        leg_entries{end+1} = '$P_{\\mathrm{total}}$';
+        leg_entries{end+1} = '$P_{\rm total}$';
         legend(leg_entries, 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
         title('Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
     else
         % Plot only battery losses if thyristor losses are negligible
         plot(alpha_deg, P_batt, 'b-', 'LineWidth', 2.5, 'MarkerFaceColor', 'b');
-        legend('$P_{\\\\mathrm{batt}} = I_{\\\\mathrm{rms}}^2 R_{\\\\mathrm{bat}}$', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
+        legend('$P_{\rm batt} = I_{\rm rms}^2 R_{\rm bat}$', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
         title('Battery Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
     end
     grid on;
@@ -428,8 +437,11 @@ if enablePlots
     
     if savePlots
         fig_temp = gcf;
-        saveas(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.png'));
-        savefig(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.fig'));
+        drawnow;
+        exportgraphics(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.png'), 'Resolution', 300);
+        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+            savefig(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.fig'));
+        end
     end
 end
 
@@ -479,8 +491,11 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     
     if savePlots
         fig_temp = gcf;
-        saveas(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.png'));
-        savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.fig'));
+        drawnow;
+        exportgraphics(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.png'), 'Resolution', 300);
+        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+            savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.fig'));
+        end
     end
 elseif enablePlots
     % Plot SoC vs time for ALL alpha values (when t_charge not provided)
@@ -520,8 +535,11 @@ elseif enablePlots
     
     if savePlots
         fig_temp = gcf;
-        saveas(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.png'));
-        savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.fig'));
+        drawnow;
+        exportgraphics(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.png'), 'Resolution', 300);
+        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+            savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.fig'));
+        end
     end
 end
 
