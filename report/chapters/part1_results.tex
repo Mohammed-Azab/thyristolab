@@ -90,8 +90,52 @@ Full-wave achieves approximately 50\% faster charging compared to half-wave for 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_soc_vs_time_target_soc.png}
-    \caption{SoC progression for different firing angles}
+    \caption{SoC progression for different firing angles (target SoC scenario)}
     \label{fig:ct_soc}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{../battery_charger/figures/full_wave_ct/full_wave_ct_soc_vs_time_fixed_duration.png}
+    \caption{SoC progression for different firing angles (fixed charging duration)}
+    \label{fig:ct_soc_fixed}
+\end{figure}
+
+\subsection{Half-Wave SoC Analysis}
+
+Figure \ref{fig:hw_soc_fixed} shows battery state of charge progression over time for the half-wave rectifier with fixed charging duration. Different firing angles result in varying final SoC levels, with smaller angles achieving higher charge levels in the same time period.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{half_wave_soc_vs_time_fixed_duration.png}
+    \caption{Half-wave SoC vs time (fixed charging duration)}
+    \label{fig:hw_soc_fixed}
+\end{figure}
+
+\subsection{Full-Wave Bridge Rectifier Results}
+
+The bridge configuration uses four thyristors and provides performance similar to the center-tapped design but with a standard (non-center-tapped) transformer.
+
+\subsubsection{Charging Time Analysis}
+
+Figure \ref{fig:bridge_time} illustrates how charging time varies with firing angle for the bridge rectifier. The relationship is similar to other configurations, with charging time increasing exponentially as the firing angle approaches $90^\circ$ due to reduced average output voltage and current.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graph1.png}
+    \caption{Bridge rectifier charging time vs firing angle}
+    \label{fig:bridge_time}
+\end{figure}
+
+\subsubsection{Power Loss Analysis}
+
+Figure \ref{fig:bridge_losses} shows power losses as a function of firing angle. The bridge configuration exhibits two thyristor drops per conduction path (compared to one in center-tapped), resulting in slightly higher conduction losses. Power losses generally decrease with increasing firing angle due to reduced current flow.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{graph2.png}
+    \caption{Bridge rectifier power losses vs firing angle}
+    \label{fig:bridge_losses}
 \end{figure}
 
 \subsection{Comparative Analysis}
