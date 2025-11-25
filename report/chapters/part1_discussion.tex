@@ -1,55 +1,58 @@
-\section{Part I: Discussion}
+\section{Discussion}
 
 \subsection{Analysis of Results}
 
 \subsubsection{Firing Angle Effect}
-\TODO{Discuss in detail:}
+Increasing firing angle significantly increases charging time because:
 \begin{itemize}
-    \item Why increasing firing angle increases charging time
-    \item The relationship between firing angle and average output voltage
-    \item Physical interpretation of the results
-    \item Practical firing angle range for battery charging
+    \item Delays thyristor turn-on, reducing conduction period
+    \item Average voltage decreases: $V_{dc} = \frac{V_m}{k\pi}(1+\cos\alpha)$ where $k=2$ (half-wave), $k=1$ (full-wave)
+    \item Lower voltage reduces charging current: $I_{avg} = (V_{dc} - V_{bat})/R_{bat}$
+    \item Relationship is highly nonlinear with exponential growth as $\alpha \to 180°$
 \end{itemize}
 
-\subsubsection{Half-Wave vs. Full-Wave Performance}
-\TODO{Analyze the differences:}
+Practical firing angles: 0° to 90°. Beyond 90°, output voltage too low for effective charging.
+
+\subsubsection{Half-Wave vs Full-Wave}
+Full-wave rectifiers are clearly superior:
 \begin{itemize}
-    \item Why full-wave rectifiers charge faster
-    \item Impact on output voltage and current ripple
-    \item Efficiency considerations
-    \item Advantages and disadvantages of each topology
+    \item 50\% reduction in charging time (two pulses per cycle)
+    \item Double ripple frequency (100Hz vs 50Hz) - easier filtering
+    \item Better transformer utilization
+    \item Lower harmonic content
 \end{itemize}
 
-\subsubsection{Center-Tapped vs. Bridge Configuration}
-\TODO{Compare the two full-wave approaches:}
+Half-wave only justified for very low-power, cost-sensitive applications.
 
-\paragraph{Center-Tapped Advantages:}
+\subsubsection{Center-Tapped vs Bridge}
+
+\textbf{Center-Tapped:}
 \begin{itemize}
-    \item \TODO{e.g., Uses only 2 thyristors}
-    \item \TODO{Lower conduction losses per cycle}
-    \item \TODO{Simpler gate drive circuitry}
+    \item Pros: 2 thyristors, one $V_t$ drop, simpler gate drive
+    \item Cons: Requires center-tapped transformer, poor transformer utilization
 \end{itemize}
 
-\paragraph{Center-Tapped Disadvantages:}
+\textbf{Bridge:}
 \begin{itemize}
-    \item \TODO{e.g., Requires center-tapped transformer}
-    \item \TODO{Poor transformer utilization}
-    \item \TODO{Higher transformer cost}
+    \item Pros: Standard transformer, better utilization, widely available
+    \item Cons: 4 thyristors, two $V_t$ drops, complex gate drive
 \end{itemize}
 
-\paragraph{Bridge Advantages:}
-\begin{itemize}
-    \item \TODO{e.g., No center-tap needed}
-    \item \TODO{Better transformer utilization}
-    \item \TODO{More common in practice}
-\end{itemize}
+\textbf{Selection:} Use bridge for most applications (standard transformers). Use center-tapped if already available or when minimizing voltage drops is critical.
 
-\paragraph{Bridge Disadvantages:}
-\begin{itemize}
-    \item \TODO{e.g., Uses 4 thyristors}
-    \item \TODO{Higher semiconductor losses}
-    \item \TODO{More complex gate drive}
-\end{itemize}
+\subsection{Practical Considerations}
+
+SoC tracking enables adaptive control: fast charge at low SoC, taper to trickle at high SoC, prevents overcharging.
+
+Power loss analysis shows battery internal resistance dominates at high currents. Trade-off between fast charging (higher losses) and efficiency.
+
+\subsection{Design Recommendations}
+
+\begin{enumerate}
+    \item \textbf{Industrial Applications}: Use full-wave bridge, operate at $\alpha = 15°-45°$, implement SoC-based control
+    \item \textbf{Cost-Sensitive}: Consider half-wave if time not critical, optimize for balance of performance and stress
+    \item \textbf{High-Efficiency}: Select low $V_t$ thyristors, optimize firing angle, consider active cooling for high power
+\end{enumerate}
 
 \subsection{Practical Considerations}
 

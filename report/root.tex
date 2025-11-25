@@ -1,141 +1,81 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[11pt,a4paper]{article}
 
 % ==================== PACKAGES ====================
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{caption}
-\usepackage{subcaption}
 \usepackage{hyperref}
-\usepackage{cite}
-\usepackage{listings}
 \usepackage{xcolor}
 \usepackage{geometry}
-\usepackage{fancyhdr}
-\usepackage{titlesec}
 \usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{array}
 \usepackage{siunitx}
-\usepackage{circuitikz}
-\usepackage{enumitem}
 
 % ==================== PAGE SETUP ====================
 \geometry{
     a4paper,
     left=2.5cm,
     right=2.5cm,
-    top=3cm,
-    bottom=3cm
+    top=2.5cm,
+    bottom=2.5cm
 }
 
 % ==================== HYPERLINKS ====================
 \hypersetup{
     colorlinks=true,
     linkcolor=blue,
-    filecolor=magenta,      
     urlcolor=cyan,
     citecolor=blue,
     pdftitle={Power Electronics I - Course Project},
-    pdfauthor={AZAB},
-    pdfsubject={Controlled Rectifiers},
-    pdfkeywords={Power Electronics, Rectifiers, Thyristors, Battery Charger}
-}
-
-% ==================== HEADERS AND FOOTERS ====================
-\pagestyle{fancy}
-\fancyhf{}
-\fancyhead[L]{Power Electronics I - Course Project}
-\fancyhead[R]{\thepage}
-\fancyfoot[C]{German International University in Berlin}
-\renewcommand{\headrulewidth}{0.4pt}
-\renewcommand{\footrulewidth}{0.4pt}
-
-% ==================== CODE LISTINGS ====================
-\lstset{
-    language=Matlab,
-    basicstyle=\ttfamily\small,
-    keywordstyle=\color{blue},
-    commentstyle=\color{green!60!black},
-    stringstyle=\color{red},
-    numbers=left,
-    numberstyle=\tiny\color{gray},
-    stepnumber=1,
-    numbersep=8pt,
-    backgroundcolor=\color{gray!10},
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    frame=single,
-    tabsize=4,
-    captionpos=b,
-    breaklines=true,
-    breakatwhitespace=false,
-    escapeinside={(*@}{@*)},
-    xleftmargin=0.5cm,
-    xrightmargin=0.5cm
+    pdfauthor={Azab, Saber, Abdelhafez}
 }
 
 % ==================== GRAPHICS PATH ====================
 \graphicspath{{figures/}}
 
-% ==================== CUSTOM COMMANDS ====================
-\newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO: #1}}}
-
 % ==================== DOCUMENT INFO ====================
 \title{
     \textbf{Power Electronics I} \\
     \Large{Course Project Report} \\
-    \large{Controlled Rectifiers for Battery Charging and Load Analysis}
+    \large{Controlled Rectifiers for Battery Charging}
 }
 
 \author{
-    \textbf{Student Names:}  \\ Mohammed Azab \\ Basanr  \\ Habiba
-    \textbf{Student ID:} Your ID \\
-    \textbf{Program:} Your Program \\
+    Mohammed Azab \and Basant Saber \and Habiba Abdelhafez \\
     \\
     German University in Cairo (GUC) \\
     Faculty of Engineering \\
     \\
-    \textbf{Course Instructor:} Dr.-Ing. Moustafa Adly
+    \textbf{Instructor:} Dr.-Ing. Moustafa Adly
 }
 
-\date{Fall Semester 2025 \\ \today}
+\date{Fall Semester 2025 \\ November 25, 2025}
 
 % ==================== DOCUMENT BEGIN ====================
 \begin{document}
 
 % Title Page
 \maketitle
-\thispagestyle{empty}
 \newpage
 
 % Table of Contents
 \tableofcontents
 \newpage
 
-% List of Figures
-\listoffigures
-\newpage
+% ==================== ABSTRACT ====================
+\section*{Abstract}
+\addcontentsline{toc}{section}{Abstract}
 
-% List of Tables
-\listoftables
+This project presents the design and analysis of controlled rectifier circuits using thyristors (SCRs) for battery charging applications. Three different rectifier configurations are implemented and simulated in MATLAB: half-wave controlled rectifier, full-wave center-tapped rectifier, and full-wave bridge rectifier. The study examines the relationship between firing angle and charging characteristics, including average and RMS voltage and current values. Performance comparisons demonstrate that full-wave configurations provide superior charging performance with reduced charging times and improved efficiency compared to half-wave rectifiers. The analysis includes circuit modeling, waveform generation, and comprehensive performance metrics for each topology.
+
 \newpage
 
 % ==================== MAIN CONTENT ====================
 
-\section{Abstract}
-Write a brief abstract (150-200 words) summarizing the project objectives, methodology, key findings, and conclusions. Mention both Part I (battery charger design) and Part II (load analysis).
-
-\newpage
-
 % ==================== PART I ====================
 \input{chapters/part1_introduction}
-\input{chapters/part1_theory}
 \input{chapters/part1_design}
 \input{chapters/part1_results}
 \input{chapters/part1_discussion}
@@ -144,9 +84,6 @@ Write a brief abstract (150-200 words) summarizing the project objectives, metho
 
 % ==================== PART II ====================
 \input{chapters/part2_introduction}
-\input{chapters/part2_theory}
-\input{chapters/part2_simulation}
-\input{chapters/part2_results}
 \input{chapters/part2_discussion}
 
 \newpage
@@ -156,69 +93,25 @@ Write a brief abstract (150-200 words) summarizing the project objectives, metho
 
 \newpage
 
-% ==================== REFERENCES ====================
-\bibliographystyle{IEEEtran}
-% Uncomment the line below if you have a references.bib file
-% \bibliography{references}
-
-% If not using BibTeX, you can manually add references:
-\begin{thebibliography}{99}
-
-\bibitem{ref1}
-Author Name, ``Title of Paper,'' \emph{Journal Name}, vol. X, no. Y, pp. Z-Z, Month Year.
-
-\bibitem{ref2}
-Author Name, \emph{Book Title}, Publisher, Year.
-
-\end{thebibliography}
-
-\newpage
-
-% ==================== APPENDICES ====================
+% ==================== APPENDIX ====================
 \appendix
 
-\section{MATLAB Code}
-\label{app:matlab_code}
+\section{MATLAB Code Overview}
 
-\subsection{Half-Wave Rectifier Battery Charger}
-\TODO{Include your MATLAB code for the half-wave rectifier function}
-\begin{lstlisting}
-% Paste your half_wave_charger.m code here
-\end{lstlisting}
+The battery charger analysis was implemented using three main MATLAB functions:
 
-\subsection{Full-Wave Center-Tapped Rectifier Battery Charger}
-\TODO{Include your MATLAB code for the center-tapped rectifier function}
-\begin{lstlisting}
-% Paste your full_wave_ct_charger.m code here
-\end{lstlisting}
+\subsection{System Parameters (params.m)}
+Defines all system parameters: supply voltage (230V RMS, 50Hz), battery specifications (20V, 0.1$\Omega$, 50Ah), initial state of charge (12\%), thyristor parameters (forward drop 1.5V), and firing angle ranges.
 
-\subsection{Full-Wave Bridge Rectifier Battery Charger}
-\TODO{Include your MATLAB code for the bridge rectifier function}
-\begin{lstlisting}
-% Paste your full_wave_bridge_charger.m code here
-\end{lstlisting}
+\subsection{Half-Wave Rectifier (half\_wave\_charger.m)}
+Implements single-phase half-wave controlled rectifier with one thyristor. Calculates average output voltage $V_{dc} = \frac{V_m}{2\pi}(1+\cos\alpha) - V_t$, charging current, SoC progression, and power losses. Generates comprehensive waveform plots and performance analysis.
 
-\subsection{Analytical Calculation Scripts}
-\TODO{Include any additional analytical scripts used for Part II}
+\subsection{Full-Wave Center-Tapped (full\_wave\_ct\_charger.m)}
+Analyzes full-wave rectifier with center-tapped transformer and two thyristors. Provides double the output frequency and improved performance: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - V_t$. Includes comparative analysis with half-wave configuration.
 
-\newpage
+\subsection{Full-Wave Bridge (full\_wave\_bridge\_charger.m)}
+Implements bridge configuration with four thyristors. Uses standard transformer (no center-tap required). Accounts for two thyristor drops: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - 2V_t$. Electrically equivalent to center-tapped but mechanically simpler.
 
-\section{Simulink Models}
-\label{app:simulink}
-
-\TODO{Include screenshots or block diagrams of your Simulink models:}
-\begin{itemize}
-    \item Half-wave controlled rectifier with different loads
-    \item Full-wave center-tapped rectifier
-    \item Full-wave bridge rectifier
-    \item Firing circuit designs
-\end{itemize}
-
-\newpage
-
-\section{Additional Results}
-\label{app:additional_results}
-
-\TODO{Include any additional plots, tables, or analysis not covered in the main body}
+All functions feature flexible input parsing, comprehensive plotting with LaTeX formatting, automatic figure saving, and detailed performance metrics output.
 
 \end{document}

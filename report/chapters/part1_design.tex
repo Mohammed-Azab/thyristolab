@@ -1,144 +1,95 @@
-\section{Part I: Design and Implementation}
+\section{Design and Implementation}
 
-\subsection{Design Specifications}
-\TODO{List all design specifications for your battery charger:}
+\subsection{MATLAB Function Architecture}
 
-\begin{table}[H]
-\centering
-\caption{Battery Charger Design Specifications}
-\label{tab:design_specs}
-\begin{tabular}{@{}lll@{}}
-\toprule
-\textbf{Parameter} & \textbf{Value} & \textbf{Unit} \\ \midrule
-Supply Voltage (RMS) & \TODO{e.g., 230} & V \\
-Supply Frequency & \TODO{e.g., 50} & Hz \\
-Battery Voltage & \TODO{e.g., 12} & V \\
-Battery Capacity & \TODO{e.g., 50} & Ah \\
-Internal Resistance & \TODO{e.g., 0.1} & $\Omega$ \\
-Desired Charging Time & \TODO{e.g., 5} & hours \\
-Initial SoC & \TODO{e.g., 20} & \% \\
-Target SoC & \TODO{e.g., 80} & \% \\ \bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{MATLAB Function Design}
-
-\subsubsection{Function Architecture}
-\TODO{Explain the overall structure of your MATLAB functions:}
+Each rectifier type is implemented as a separate MATLAB function:
 \begin{itemize}
-    \item Input parameter handling and validation
-    \item Main calculation loop
-    \item Firing angle sweep methodology
-    \item Charging time calculation algorithm
-    \item Output generation (plots, results)
+    \item \texttt{half\_wave\_charger.m} - Half-wave controlled rectifier
+    \item \texttt{full\_wave\_ct\_charger.m} - Full-wave center-tapped rectifier  
+    \item \texttt{full\_wave\_bridge\_charger.m} - Full-wave bridge rectifier
+    \item \texttt{params.m} - System parameter configuration
 \end{itemize}
 
-\subsubsection{Algorithm Flowchart}
-\TODO{Create and insert flowchart showing:}
-\begin{itemize}
-    \item Input parameters
-    \item Initialization
-    \item Firing angle iteration
-    \item Time-domain simulation or analytical calculation
-    \item SoC update (if applicable)
-    \item Convergence check
-    \item Output generation
-\end{itemize}
-
-\begin{figure}[H]
-    \centering
-    % \includegraphics[width=0.6\textwidth]{algorithm_flowchart.png}
-    \caption{Algorithm flowchart for battery charger analysis}
-    \label{fig:algorithm_flowchart}
-\end{figure}
-
-\subsection{Half-Wave Rectifier Implementation}
-
-\subsubsection{Function Signature}
-\TODO{Document your function signature:}
-\begin{lstlisting}
-function [alpha_array, charging_time, SoC_final, P_loss] = ...
-    half_wave_charger(Vrms, f, Vbat, Rbat, capacity, varargin)
-\end{lstlisting}
-
-\subsubsection{Key Implementation Details}
-\TODO{Explain how you implemented:}
+All functions share common features:
 \begin{enumerate}
-    \item Calculation of average charging current for each firing angle
-    \item Integration of current over time to determine charge delivered
-    \item Relationship between firing angle and charging time
-    \item Optional: Thyristor loss calculation
-    \item Optional: SoC tracking
+    \item Input parameter handling for battery, supply, and thyristor specifications
+    \item Firing angle sweep from 0° to 180°
+    \item Calculation of voltage, current, and charging metrics
+    \item Power loss analysis (battery, thyristor conduction, blocking, switching)
+    \item State of Charge tracking
+    \item Comprehensive visualization and data output
 \end{enumerate}
 
-\subsubsection{Mathematical Equations Used}
-\TODO{List the specific equations implemented in code}
+\subsection{Half-Wave Controlled Rectifier}
 
-For firing angle $\alpha$, the average charging current is:
+Uses a single thyristor that conducts only during positive half-cycles when:
+\begin{itemize}
+    \item Thyristor is forward-biased
+    \item Gate trigger is applied ($\theta \geq \alpha$)
+    \item Output voltage exceeds battery EMF
+\end{itemize}
+
+\textbf{Key Equations:}
 \begin{equation}
-    I_{dc} = \frac{1}{2\pi R_{batt}} \int_{\alpha}^{\pi} (V_m \sin\theta - E_{batt}) d\theta
+    V_{dc} = \frac{V_m}{2\pi}(1 + \cos\alpha) - V_t
+\end{equation}
+\begin{equation}
+    I_{avg} = \frac{V_{dc} - V_{bat}}{R_{bat}}
+\end{equation}
+\begin{equation}
+    t_{charge} = \frac{(SoC_{target} - SoC_{init}) \cdot C_{Ah} \cdot 3600}{I_{avg}}
 \end{equation}
 
-Charging time for desired SoC change:
+\subsection{Full-Wave Center-Tapped Rectifier}
+
+Employs center-tapped transformer with two thyristors alternating each half-cycle, producing two output pulses per AC cycle.
+
+\textbf{Advantages:} Higher average voltage, reduced ripple, faster charging
+
+\textbf{Key Equation:}
 \begin{equation}
-    t_{charge} = \frac{\Delta Q}{I_{dc}} = \frac{Q_{capacity} \cdot \Delta SoC}{I_{dc}}
+    V_{dc} = \frac{2V_m}{\pi}(1 + \cos\alpha) - V_t
 \end{equation}
 
-\subsection{Full-Wave Center-Tapped Implementation}
+\subsection{Full-Wave Bridge Rectifier}
 
-\subsubsection{Function Signature}
-\TODO{Document your function signature}
+Four thyristors in bridge arrangement. T1-T3 conduct during positive half-cycle, T2-T4 during negative half-cycle.
 
-\subsubsection{Key Differences from Half-Wave}
-\TODO{Explain the modifications:}
-\begin{itemize}
-    \item Integration limits (0 to $\pi$ instead of $\alpha$ to $\pi$ per cycle)
-    \item Factor of 2 in frequency (two pulses per cycle)
-    \item Modified voltage equations
-\end{itemize}
+\textbf{Advantages:} Standard transformer (no center-tap), better transformer utilization
 
-\subsection{Full-Wave Bridge Implementation}
+\textbf{Trade-off:} Four thyristors vs two thyristor drops in series
 
-\subsubsection{Function Signature}
-\TODO{Document your function signature}
-
-\subsubsection{Implementation Notes}
-\TODO{Explain:}
-\begin{itemize}
-    \item Similarity to center-tapped configuration
-    \item Any differences in implementation
-    \item Consideration of multiple thyristor drops (if modeling non-idealities)
-\end{itemize}
-
-\subsection{Optional Features Implementation}
-
-\subsubsection{Thyristor Non-Idealities}
-\TODO{If implemented, explain how you modeled:}
-\begin{itemize}
-    \item Forward voltage drop: $V_T \approx $ \TODO{typical value 1-2V}
-    \item Reverse leakage current: $I_{leak} \approx $ \TODO{typical value in $\mu$A}
-    \item Switching times: rise time, fall time
-    \item Loss calculation methodology
-\end{itemize}
-
-Average power loss per thyristor:
+\textbf{Key Equation:}
 \begin{equation}
-    P_{loss,thyristor} = \TODO{Derive based on conduction time and forward drop}
+    V_{dc} = \frac{2V_m}{\pi}(1 + \cos\alpha) - 2V_t
 \end{equation}
 
-\subsubsection{State of Charge Tracking}
-\TODO{If implemented, explain:}
-\begin{itemize}
-    \item How SoC is updated during charging
-    \item Impact of SoC on battery voltage
-    \item Termination criteria for charging
-\end{itemize}
+\subsection{Power Loss Modeling}
 
-\subsection{Validation and Testing}
-\TODO{Describe how you validated your functions:}
-\begin{itemize}
-    \item Test cases used
-    \item Comparison with theoretical values
-    \item Boundary condition checks (e.g., $\alpha = 0°$, $\alpha = 90°$)
-    \item Physical plausibility of results
-\end{itemize}
+Battery internal losses:
+\begin{equation}
+    P_{batt} = I_{rms}^2 \cdot R_{bat}
+\end{equation}
+
+Thyristor conduction losses:
+\begin{equation}
+    P_{th,cond} = V_t \cdot I_{avg} + R_{th} \cdot I_{rms}^2
+\end{equation}
+
+Thyristor blocking losses:
+\begin{equation}
+    P_{block} = V_{block,avg} \cdot I_{leak}
+\end{equation}
+
+Switching losses:
+\begin{equation}
+    P_{switch} = f \cdot (E_{on} + E_{off})
+\end{equation}
+where $E_{on} = \frac{1}{6}V_{block}I_{peak}t_{rise}$ and $E_{off} = \frac{1}{6}V_{block}I_{peak}t_{fall}$.
+
+\subsection{State of Charge Tracking}
+
+\begin{equation}
+    SoC(t) = SoC_0 + \frac{100}{Q_{capacity}} \int_0^t I_{charge}(\tau) d\tau
+\end{equation}
+where $Q_{capacity}$ is in Coulombs (Ah × 3600).

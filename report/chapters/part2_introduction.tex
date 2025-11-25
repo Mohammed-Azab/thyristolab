@@ -1,70 +1,23 @@
-\section{Part II: Load Analysis - Introduction}
+\section{Load Analysis (Future Work)}
 
-\subsection{Objectives}
-\TODO{Expand on the following objectives:}
+\textbf{Note:} Part II will be completed in the next phase of the project.
 
-The primary objectives of Part II are:
+\subsection{Planned Objectives}
 
+Simulate and analyze controlled rectifiers with different load types:
 \begin{itemize}
-    \item Simulate and analyze controlled rectifiers under various load conditions
-    \item Study the behavior of rectifiers with three load types:
-    \begin{itemize}
-        \item Resistive load (R)
-        \item Resistive-inductive load (RL)
-        \item Highly inductive load (L >> R)
-    \end{itemize}
-    \item Investigate current continuity and discontinuity modes
-    \item Analyze the role of free-wheeling diodes
-    \item Design firing circuits using pulse generators
-    \item Compare half-wave and full-wave configurations
-    \item Study the phenomenon of negative output voltage with positive current
+    \item Resistive load (R)
+    \item Resistive-inductive load (RL)
+    \item Highly inductive load (L >> R)
+    \item Study current continuity modes
+    \item Analyze free-wheeling diode effects
+    \item Design firing circuits
 \end{itemize}
 
-\subsection{Background}
-\TODO{Provide background on:}
-\begin{itemize}
-    \item Why load type matters in rectifier operation
-    \item Inductive load effects on current waveforms
-    \item Applications of controlled rectifiers with different loads:
-    \begin{itemize}
-        \item DC motor drives (RL load)
-        \item Battery charging (EMF load - covered in Part I)
-        \item Electrochemical processes
-        \item High-power DC supplies
-    \end{itemize}
-\end{itemize}
+\subsection{Expected Findings}
 
-\subsection{Problem Statement}
-\TODO{State the specific problems addressed:}
-\begin{itemize}
-    \item Understanding current continuity conditions
-    \item Predicting output characteristics for different loads
-    \item Determining when free-wheeling diodes are beneficial
-    \item Analyzing power flow and four-quadrant operation
-\end{itemize}
+\textbf{Resistive Load:} Current follows voltage, discontinuous at high $\alpha$
 
-\subsection{Simulation vs. Analytical Approach}
-\TODO{Explain why Simulink is used for Part II:}
-\begin{itemize}
-    \item Complex waveforms difficult to analyze analytically
-    \item Transient behavior important for inductive loads
-    \item Visual representation of voltage and current waveforms
-    \item Easy parameter variation and comparison
-    \item Validation of analytical calculations
-\end{itemize}
+\textbf{RL Load:} Current lags voltage, extended conduction, smoother waveform
 
-\subsection{Scope}
-This part covers:
-\begin{itemize}
-    \item Simulink modeling and simulation
-    \item MATLAB scripts for analytical calculations
-    \item Systematic comparison of configurations
-    \item Firing circuit design
-\end{itemize}
-
-This part does not cover:
-\begin{itemize}
-    \item Detailed component-level modeling
-    \item Closed-loop control design
-    \item Hardware implementation
-\end{itemize}
+\textbf{Highly Inductive:} Constant current, continuous conduction, enables regenerative operation
