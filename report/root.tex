@@ -12,9 +12,34 @@
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{siunitx}
+\usepackage{listings}
 
 % ==================== CUSTOM COMMANDS ====================
 \newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO: #1}}}
+
+% ==================== LISTINGS SETUP ====================
+\lstset{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={\%*}{*)},
+    morekeywords={function, end, if, else, for, while, switch, case, otherwise}
+}
 
 % ==================== PAGE SETUP ====================
 \geometry{
@@ -61,7 +86,6 @@
 
 % Title Page
 \maketitle
-\newpage
 
 % Table of Contents
 \tableofcontents
@@ -73,8 +97,6 @@
 
 This project presents the design and analysis of controlled rectifier circuits using thyristors (SCRs) for battery charging applications. Three different rectifier configurations are implemented and simulated in MATLAB: half-wave controlled rectifier, full-wave center-tapped rectifier, and full-wave bridge rectifier. The study examines the relationship between firing angle and charging characteristics, including average and RMS voltage and current values. Performance comparisons demonstrate that full-wave configurations provide superior charging performance with reduced charging times and improved efficiency compared to half-wave rectifiers. The analysis includes circuit modeling, waveform generation, and comprehensive performance metrics for each topology.
 
-\newpage
-
 % ==================== MAIN CONTENT ====================
 
 % ==================== PART I ====================
@@ -83,13 +105,9 @@ This project presents the design and analysis of controlled rectifier circuits u
 \input{chapters/part1_results}
 \input{chapters/part1_discussion}
 
-\newpage
-
 % ==================== PART II ====================
 \input{chapters/part2_introduction}
 \input{chapters/part2_discussion}
-
-\newpage
 
 % ==================== CONCLUSION ====================
 \input{chapters/conclusion}
@@ -99,22 +117,100 @@ This project presents the design and analysis of controlled rectifier circuits u
 % ==================== APPENDIX ====================
 \appendix
 
-\section{MATLAB Code Overview}
+\section{MATLAB Code}
 
-The battery charger analysis was implemented using three main MATLAB functions:
+This appendix contains the complete MATLAB implementation for the battery charger analysis.
 
 \subsection{System Parameters (params.m)}
-Defines all system parameters: supply voltage (230V RMS, 50Hz), battery specifications (20V, 0.1$\Omega$, 50Ah), initial state of charge (12\%), thyristor parameters (forward drop 1.5V), and firing angle ranges.
+
+\begin{lstlisting}
+% default battery_charger params
+
+% Supply
+Vrms = 230; 
+f = 50;
+
+% Battery
+Vbat = 20; 
+Rbat = 0.1; 
+capacity = 50; 
+capUnit = 'Ah';
+
+% SoC & time
+SoC_init = 12; 
+SoC_target = 100;
+t_charging_hours =  0.5; % Simulated User Input
+t_charge = inf;
+
+% Thyristor
+alpha = 30;
+alpha_deg = 0:2:180;         
+Vt = 1.5;       
+Rth = 0.001;  
+Ileak = 0.01;  
+t_rise = 1e-6;  
+t_fall = 2e-6;  
+
+% Simulation params 
+dt = 1/(300*f);
+
+% Visualization
+enablePlots = true;
+savePlots = true; 
+\end{lstlisting}
 
 \subsection{Half-Wave Rectifier (half\_wave\_charger.m)}
-Implements single-phase half-wave controlled rectifier with one thyristor. Calculates average output voltage $V_{dc} = \frac{V_m}{2\pi}(1+\cos\alpha) - V_t$, charging current, SoC progression, and power losses. Generates comprehensive waveform plots and performance analysis.
+
+Due to the length of the code (over 500 lines), the key equations implemented are:
+
+\begin{itemize}
+    \item Average output voltage: $V_{dc} = \frac{V_m}{2\pi}(1+\cos\alpha) - V_t$
+    \item Charging current: $I_{charge} = \frac{V_{dc} - V_{bat}}{R_{bat}}$
+    \item Power losses: $P_{thyristor} = V_t I_{avg} + R_{th} I_{rms}^2$
+    \item Battery losses: $P_{batt} = I_{rms}^2 R_{bat}$
+    \item State of charge: $SoC(t) = SoC_{init} + \frac{100 \cdot I_{avg} \cdot t}{Q_{capacity}}$
+\end{itemize}
+
+The function generates comprehensive waveform plots including voltages, currents, power losses, and SoC profiles for different firing angles.
 
 \subsection{Full-Wave Center-Tapped (full\_wave\_ct\_charger.m)}
-Analyzes full-wave rectifier with center-tapped transformer and two thyristors. Provides double the output frequency and improved performance: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - V_t$. Includes comparative analysis with half-wave configuration.
+
+Key differences from half-wave configuration:
+
+\begin{itemize}
+    \item Average output voltage: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - V_t$
+    \item Double the output frequency (100 Hz ripple vs 50 Hz)
+    \item Uses two thyristors with center-tapped transformer
+    \item One thyristor drop per conduction path
+    \item Improved performance: higher average voltage and reduced charging time
+\end{itemize}
 
 \subsection{Full-Wave Bridge (full\_wave\_bridge\_charger.m)}
-Implements bridge configuration with four thyristors. Uses standard transformer (no center-tap required). Accounts for two thyristor drops: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - 2V_t$. Electrically equivalent to center-tapped but mechanically simpler.
 
-All functions feature flexible input parsing, comprehensive plotting with LaTeX formatting, automatic figure saving, and detailed performance metrics output.
+Bridge configuration characteristics:
+
+\begin{itemize}
+    \item Average output voltage: $V_{dc} = \frac{2V_m}{\pi}(1+\cos\alpha) - 2V_t$
+    \item Uses four thyristors in bridge configuration
+    \item Standard transformer (no center-tap required)
+    \item Two thyristor drops in series during conduction
+    \item Electrically equivalent to center-tapped but mechanically simpler
+    \item More complex gate drive circuit required
+\end{itemize}
+
+\subsection{Code Features}
+
+All functions implement:
+
+\begin{itemize}
+    \item Flexible input parsing with name-value pairs
+    \item Support for both fixed charging duration and target SoC scenarios
+    \item Comprehensive power loss analysis (conduction, blocking, switching)
+    \item Automatic figure generation with LaTeX formatting
+    \item Export to both PNG (300 DPI) and FIG formats
+    \item Detailed console output with system parameters and performance metrics
+    \item Comparison plots across different firing angles
+    \item Battery state-of-charge tracking over time
+\end{itemize}
 
 \end{document}
