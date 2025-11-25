@@ -328,10 +328,10 @@ if enablePlots
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
     ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 14);
     
-%end
+end
 
- %Plot charging time vs alpha only when t_charge is not provided (computing time to reach target SoC)
-%if enablePlots && (isempty(t_charge) || isinf(t_charge))
+% Plot charging time vs alpha only when t_charge is not provided (computing time to reach target SoC)
+if enablePlots && (isempty(t_charge) || isinf(t_charge))
     figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Charging Time', 'Position', [100, 100, 900, 600]);
     
     % Use logarithmic scale for better visualization of large variations
@@ -353,7 +353,7 @@ if enablePlots
     % Set reasonable axis limits
     xlim([min(alpha_deg), max(alpha_deg)]);
     ylim([min(charging_time_hours(charging_time_hours>0))*0.5, max(charging_time_hours)*1.5]);
-%end
+end
 
 % Power Losses vs Firing Angle
 if enablePlots
@@ -444,7 +444,16 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     xlabel('Time (hours)', 'Interpreter', 'latex', 'FontSize', 16);
     ylabel('State of Charge (\%)', 'Interpreter', 'latex', 'FontSize', 16);
     title('Battery Charging Profiles for Different Firing Angles', 'Interpreter', 'latex', 'FontSize', 18);
-    legend(legend_entries, 'Interpreter', 'latex', 'FontSize', 10, 'Location', 'best', 'NumColumns', 2);
+    
+    % Limit legend entries to avoid warning
+    if na <= 20
+        legend(legend_entries, 'Interpreter', 'latex', 'FontSize', 10, 'Location', 'best', 'NumColumns', 2);
+    else
+        % Show legend for every other entry if there are many
+        legend_subset = legend_entries(1:2:end);
+        legend(legend_subset, 'Interpreter', 'latex', 'FontSize', 9, 'Location', 'best', 'NumColumns', 3);
+    end
+    
     ylim([max(0, SoC_init-5), 105]);
     hold off;
 elseif enablePlots
