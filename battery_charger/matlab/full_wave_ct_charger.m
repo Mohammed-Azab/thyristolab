@@ -13,21 +13,23 @@ function [alpha_deg, charging_time_hours, SoC_final, P_loss_avg, metrics] = full
 %   capUnit     - Battery capacity unit 'Ah' or 'Wh'
 %
 % Name-Value Optional Inputs:
-%   't_charge'  - Charging time [s]
+%   't_charge'  - Charging time [Hours].
 %   'SoC_init'  - Initial state of charge [%]
 %   'Vt'        - Thyristor forward drop per conducting device [V]
 %   'Rth'       - Equivalent on-state resistance of thyristor [Ohm]
 %   'Ileak'     - Reverse leakage Current [A]
 %   't_rise'    - Rise time [s]
 %   't_fall'    - Fall time[s]
-%   'alpha_deg' - Vector of firing angles to analyze [deg]
+%   'alpha_deg' - Vector of firing angles to analyze [deg] (for sweep analysis)
+%   'alpha'     - Single firing angle [deg] (for detailed waveform plots)
 %   'SoC_target'- Target state of charge [%]
+%   'enablePlots'- Enable/disable all plots [boolean]
 %
 % Outputs:
-%   alpha_deg           - Analyzed firing angles [deg]
-%   charging_time_hours - Charging time for each alpha [h]
-%   SoC_final           - Final SoC if 't_charge' provided [%]
-%   P_loss_avg          - Average SCR conduction loss for each alpha [W]
+%   alpha_deg           - Analyzed firing angles [deg] (vector)
+%   charging_time_hours - Charging time for each alpha [h] (vector, same size as alpha_deg)
+%   SoC_final           - Final SoC if 't_charge' provided [%] (vector)
+%   P_loss_avg          - Average SCR conduction loss for each alpha [W] (vector)
 %   metrics             - Struct with fields per alpha: Vavg, Vrms, Iavg, Irms,
 %                         P_batt, P_thyristor, P_blocking, P_switching, P_total
 %
@@ -41,6 +43,14 @@ try
     SoC_target_ws = evalin('base', 'SoC_target');
 catch
     SoC_target_ws = 80; 
+end
+try
+    t_charge_ws = evalin('base', 't_charge');
+    if isinf(t_charge_ws)
+        t_charge_ws = [];
+    end
+catch
+    t_charge_ws = []; 
 end
 try
     alpha_deg_ws = evalin('base', 'alpha_deg');
@@ -71,7 +81,7 @@ end
 
 % ---------- Parse inputs ----------
 p = inputParser;
-addParameter(p, 't_charge', [], @isnumeric);
+addParameter(p, 't_charge', t_charge_ws, @(x) isempty(x) || (isnumeric(x) && isscalar(x)));
 addParameter(p, 'SoC_init', SoC_init_ws, @isnumeric);
 addParameter(p, 'SoC_target', SoC_target_ws, @isnumeric);
 addParameter(p, 'Vt', 0, @isnumeric);
@@ -101,6 +111,8 @@ if isstring(capUnit) || ischar(capUnit)
         capacity = capacity / Vbat; % Wh -> Ah
     end
 end
+
+t_charge = t_charge*3600; % convert to Seconds
 
 % ---------- Constants ----------
 Vm = sqrt(2) * Vrms; % Peak voltage per half-winding
@@ -157,8 +169,10 @@ for k = 1:na
     % Battery internal resistance losses: P = I_rms^2 * Rbat
     P_batt(k) = Irms(k)^2 * Rbat;
     
+    if ~(Ileak == 0)
     % Thyristor conduction losses: P = Vt*I_avg + Rth*I_rms^2
-    P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+        P_thyristor(k) = Vt*Iavg(k) + Rth*Irms(k)^2;
+    end
     
     % Thyristor blocking/leakage losses: P = V_blocking * Ileak (average)
     if Ileak > 0
@@ -189,7 +203,9 @@ for k = 1:na
     % Legacy output for backward compatibility
     P_loss_avg(k) = P_thyristor(k);
 
-    if isempty(t_charge)
+    % Calculate charging time or final SoC
+    % If t_charge is empty or inf, calculate time needed to reach SoC_target
+    if isempty(t_charge) || isinf(t_charge)
         dSoC = max(SoC_target - SoC_init, 0)/100; 
         if Iavg(k) > 0
             t_sec = (Q_C * dSoC) / Iavg(k);
@@ -246,135 +262,214 @@ if enablePlots
     v_th(~on_demo) = V_abs(~on_demo);
     
     % Figure 1: Voltages
-    figure('Name', 'Full-Wave CT Rectifier - Voltages');
+    figure('Name', 'Full-Wave CT Rectifier - Voltages', 'Position', [100, 100, 1200, 800]);
     t_layout1 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
-    title(t_layout1,sprintf('Full-Wave CT Rectifier Voltages (\\alpha = %.0f°, Vm=%.1fV)', alpha, Vm));
+    title(t_layout1,sprintf('Full-Wave CT Rectifier Voltages ($\\alpha = %.0f^\\circ$, $V_m=%.1f$ V)', alpha, Vm), 'Interpreter', 'latex', 'FontSize', 18);
     
     nexttile; 
-    plot(t_ms, V_abs, 'b--', t_ms, Vbat*ones(size(t_ms)), 'g:', t_ms, v_out_demo, 'b-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('Voltage (V)'); 
-    legend('Source |V|', 'V_{bat}', 'V_{out}', 'Location', 'best');
-    title('Source & Output Voltage');
+    plot(t_ms, V_abs, 'b--', t_ms, Vbat*ones(size(t_ms)), 'g:', t_ms, v_out_demo, 'b-','LineWidth', 2); 
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('Voltage (V)', 'Interpreter', 'latex', 'FontSize', 14); 
+    legend('$|V_{\mathrm{source}}|$', '$V_{\mathrm{bat}}$', '$V_{\mathrm{out}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+    title('Source \& Output Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
-    plot(t_ms, v_th, 'r-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('V_{th} (V)');
-    title('Thyristor Voltage');
+    plot(t_ms, v_th, 'r-','LineWidth', 2); 
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('$V_{\mathrm{th}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
+    title('Thyristor Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
-    plot(t_ms, v_out_demo, 'b-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('V_{out} (V)');
-    title('Output Voltage');
+    plot(t_ms, v_out_demo, 'b-','LineWidth', 2); 
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('$V_{\mathrm{out}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
+    title('Output Voltage', 'Interpreter', 'latex', 'FontSize', 14);
     
     % Figure 2: Currents
-    figure('Name', 'Full-Wave CT Rectifier - Currents');
+    figure('Name', 'Full-Wave CT Rectifier - Currents', 'Position', [100, 100, 1200, 800]);
     t_layout2 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
-    title(t_layout2,sprintf('Full-Wave CT Rectifier Currents (\\alpha = %.0f°)', alpha));
+    title(t_layout2,sprintf('Full-Wave CT Rectifier Currents ($\\alpha = %.0f^\\circ$)', alpha), 'Interpreter', 'latex', 'FontSize', 18);
     
     nexttile; 
-    plot(t_ms, i_demo, 'm-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('I_{batt} (A)');
-    title('Battery Current');
+    plot(t_ms, i_demo, 'm-','LineWidth', 2); 
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('$I_{\mathrm{batt}}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
+    title('Battery Current', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile; 
-    plot(t_ms, i_th, 'c-','LineWidth',1.2); 
-    grid on; xlabel('Time (ms)'); ylabel('I_{th} (A)');
-    title('Thyristor Current');
+    plot(t_ms, i_th, 'c-','LineWidth', 2); 
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('$I_{\mathrm{th}}$ (A)', 'Interpreter', 'latex', 'FontSize', 14);
+    title('Thyristor Current', 'Interpreter', 'latex', 'FontSize', 14);
     
     nexttile;
     if Ileak > 0 || Rth > 0 || Vt > 0
         plot(t_ms, p_batt_inst, 'b-', t_ms, p_thyristor_inst, 'r-', ...
-             t_ms, p_blocking_inst, 'g-', t_ms, p_total_inst, 'k--', 'LineWidth', 1.2);
-        legend('P_{batt}', 'P_{thyristor}', 'P_{blocking}', 'P_{total}', 'Location', 'best');
-        title('Instantaneous Power Losses');
+             t_ms, p_blocking_inst, 'g-', t_ms, p_total_inst, 'k--', 'LineWidth', 2);
+        legend('$P_{\mathrm{batt}}$', '$P_{\mathrm{thyristor}}$', '$P_{\mathrm{blocking}}$', '$P_{\mathrm{total}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+        title('Instantaneous Power Losses', 'Interpreter', 'latex', 'FontSize', 14);
     else
-        plot(t_ms, p_batt_inst, 'b-', 'LineWidth', 1.2);
-        legend('P_{batt}', 'Location', 'best');
-        title('Instantaneous Battery Power Loss');
+        plot(t_ms, p_batt_inst, 'b-', 'LineWidth', 2);
+        legend('$P_{\mathrm{batt}}$', 'Interpreter', 'latex', 'FontSize', 12, 'Location', 'best');
+        title('Instantaneous Battery Power Loss', 'Interpreter', 'latex', 'FontSize', 14);
     end
-    grid on; xlabel('Time (ms)'); ylabel('Power Loss (W)');
+    grid on; 
+    set(gca, 'FontSize', 12, 'LineWidth', 1);
+    xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
+    ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 14);
     
 end
 
-figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Charging Time');
-plot(alpha_deg, charging_time_hours, 'r-s', 'LineWidth', 2);
-grid on;
-xlabel('Firing Angle \alpha (degrees)');
-ylabel('Charging Time (hours)');
-title('Full-Wave Center-Tapped Controlled Rectifier');
-legend('Charging Time');
+% Plot charging time vs alpha only when t_charge is not provided (computing time to reach target SoC)
+if enablePlots && (isempty(t_charge) || isinf(t_charge))
+    figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Charging Time', 'Position', [100, 100, 900, 600]);
+    
+    % Use logarithmic scale for better visualization of large variations
+    semilogy(alpha_deg, charging_time_hours, 'r-', 'LineWidth', 2.5, 'MarkerSize', 8, 'Marker', 's', 'MarkerFaceColor', 'r');
+    grid on;
+    set(gca, 'FontSize', 14, 'LineWidth', 1.2);
+    xlabel('Firing Angle $\alpha$ (degrees)', 'Interpreter', 'latex', 'FontSize', 16);
+    ylabel('Charging Time (hours, log scale)', 'Interpreter', 'latex', 'FontSize', 16);
+    title('Full-Wave Center-Tapped Controlled Rectifier', 'Interpreter', 'latex', 'FontSize', 18);
+    legend('Charging Time', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
+    
+    % Add annotation for the current alpha value
+    hold on;
+    plot(alpha, charging_time_hours(alpha_idx), 'go', 'MarkerSize', 12, 'MarkerFaceColor', 'g', 'LineWidth', 2);
+    text(alpha, charging_time_hours(alpha_idx)*1.3, sprintf('$\\alpha = %.0f^\\circ$\n%.2f h', alpha, charging_time_hours(alpha_idx)), ...
+         'Interpreter', 'latex', 'FontSize', 12, 'HorizontalAlignment', 'center', 'Color', 'g', 'FontWeight', 'bold');
+    hold off;
+    
+    % Set reasonable axis limits
+    xlim([min(alpha_deg), max(alpha_deg)]);
+    ylim([min(charging_time_hours(charging_time_hours>0))*0.5, max(charging_time_hours)*1.5]);
+end
 
 % Power Losses vs Firing Angle
-figure('Name', 'Full-Wave CT Rectifier - Power Losses vs Firing Angle');
-if any(P_thyristor > 0) || any(P_blocking > 0) || any(P_switching > 0)
-    hold on;
-    plot(alpha_deg, P_batt, 'b-o', 'LineWidth', 2, 'MarkerSize', 6);
-    plot(alpha_deg, P_thyristor, 'r-s', 'LineWidth', 2, 'MarkerSize', 6);
-    if any(P_blocking > 0)
-        plot(alpha_deg, P_blocking, 'g-d', 'LineWidth', 2, 'MarkerSize', 6);
+if enablePlots
+    figure('Name', 'Full-Wave CT Rectifier - Power Losses vs Firing Angle', 'Position', [100, 100, 900, 600]);
+    if any(P_thyristor > 0) || any(P_blocking > 0) || any(P_switching > 0)
+        hold on;
+        plot(alpha_deg, P_batt, 'b-', 'LineWidth', 2.5, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'b');
+        plot(alpha_deg, P_thyristor, 'r-', 'LineWidth', 2.5, 'Marker', 's', 'MarkerSize', 8, 'MarkerFaceColor', 'r');
+        if any(P_blocking > 0)
+            plot(alpha_deg, P_blocking, 'g-', 'LineWidth', 2.5, 'Marker', 'd', 'MarkerSize', 8, 'MarkerFaceColor', 'g');
+        end
+        if any(P_switching > 0)
+            plot(alpha_deg, P_switching, 'm-', 'LineWidth', 2.5, 'Marker', '^', 'MarkerSize', 8, 'MarkerFaceColor', 'm');
+        end
+        plot(alpha_deg, P_total, 'k--', 'LineWidth', 3, 'Marker', 'pentagram', 'MarkerSize', 10, 'MarkerFaceColor', 'k');
+        hold off;
+        
+        leg_entries = {'$P_{\mathrm{batt}} = I_{\mathrm{rms}}^2 R_{\mathrm{bat}}$', '$P_{\mathrm{th,cond}} = V_t I_{\mathrm{avg}} + R_{\mathrm{th}} I_{\mathrm{rms}}^2$'};
+        if any(P_blocking > 0)
+            leg_entries{end+1} = '$P_{\mathrm{block}} = V_{\mathrm{block}} I_{\mathrm{leak}}$';
+        end
+        if any(P_switching > 0)
+            leg_entries{end+1} = '$P_{\mathrm{switch}}$';
+        end
+        leg_entries{end+1} = '$P_{\mathrm{total}}$';
+        legend(leg_entries, 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
+        title('Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
+    else
+        % Plot only battery losses if thyristor losses are negligible
+        plot(alpha_deg, P_batt, 'b-', 'LineWidth', 2.5, 'MarkerFaceColor', 'b');
+        legend('$P_{\mathrm{batt}} = I_{\mathrm{rms}}^2 R_{\mathrm{bat}}$', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
+        title('Battery Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
     end
-    if any(P_switching > 0)
-        plot(alpha_deg, P_switching, 'm-^', 'LineWidth', 2, 'MarkerSize', 6);
-    end
-    plot(alpha_deg, P_total, 'k-^', 'LineWidth', 2, 'MarkerSize', 6);
-    hold off;
-    
-    leg_entries = {'Battery (I^2R_{bat})', 'Thyristor Conduction (Vt+Rth)'};
-    if any(P_blocking > 0)
-        leg_entries{end+1} = 'Blocking (V_{block}·I_{leak})';
-    end
-    if any(P_switching > 0)
-        leg_entries{end+1} = 'Switching';
-    end
-    leg_entries{end+1} = 'Total Losses';
-    legend(leg_entries, 'Location', 'best');
-    title('Power Losses vs Firing Angle (Full-Wave CT)');
-else
-    % Plot only battery losses if thyristor losses are negligible
-    plot(alpha_deg, P_batt, 'b-o', 'LineWidth', 2, 'MarkerSize', 6);
-    legend('Battery Losses (I^2R_{bat})', 'Location', 'best');
-    title('Battery Power Losses vs Firing Angle (Full-Wave CT)');
+    grid on;
+    set(gca, 'FontSize', 14, 'LineWidth', 1.2);
+    xlabel('Firing Angle $\alpha$ (degrees)', 'Interpreter', 'latex', 'FontSize', 16);
+    ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 16);
 end
-grid on;
-xlabel('Firing Angle \alpha (degrees)');
-ylabel('Power Loss (W)');
 
-if ~isempty(t_charge)
-    t_charge_vec = linspace(0, t_charge/3600, 100); % hours
-    SoC_vec = SoC_init + (SoC_final(alpha_idx) - SoC_init) * (t_charge_vec / (t_charge/3600));
-    
-    figure('Name', 'Battery State of Charge vs Time');
-    plot(t_charge_vec, SoC_vec, 'b-', 'LineWidth', 2);
+if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
+    % Plot SoC vs time for ALL alpha values
+    figure('Name', 'Battery State of Charge vs Time (All Alphas)', 'Position', [100, 100, 900, 600]);
     hold on;
-    plot(0, SoC_init, 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
-    plot(t_charge/3600, SoC_final(alpha_idx), 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
+    
+    % Color map for different alpha values
+    colors = jet(na);
+    legend_entries = {};
+    
+    for k = 1:na
+        % Calculate time to reach either 100% or the final SoC
+        if SoC_final(k) >= 100
+            % Calculate time to reach 100%
+            time_to_100 = ((100 - SoC_init) / 100) * Q_C / Iavg(k) / 3600; % hours
+            t_plot = linspace(0, time_to_100, 100);
+            SoC_plot = SoC_init + (100 - SoC_init) * (t_plot / time_to_100);
+        else
+            % Use full charging time
+            t_plot = linspace(0, t_charge/3600, 100);
+            SoC_plot = SoC_init + (SoC_final(k) - SoC_init) * (t_plot / (t_charge/3600));
+        end
+        
+        plot(t_plot, SoC_plot, 'LineWidth', 2, 'Color', colors(k,:));
+        legend_entries{k} = sprintf('$\\alpha = %.0f^\\circ$', alpha_deg(k));
+    end
+    
     grid on;
-    xlabel('Time (hours)');
-    ylabel('State of Charge (%)');
-    title(sprintf('Battery Charging Profile (\\alpha = %.0f°)', alpha));
-    legend('SoC', 'Initial State', 'Final State', 'Location', 'southeast');
-    text(0, SoC_init-5, sprintf('  %.1f%%', SoC_init), 'FontSize', 10, 'Color', 'g');
-    text(t_charge/3600, SoC_final(alpha_idx)+5, sprintf('  %.1f%%', SoC_final(alpha_idx)), 'FontSize', 10, 'Color', 'r');
-    ylim([max(0, SoC_init-10), min(100, max(SoC_final(alpha_idx), SoC_target)+10)]);
+    set(gca, 'FontSize', 14, 'LineWidth', 1.2);
+    xlabel('Time (hours)', 'Interpreter', 'latex', 'FontSize', 16);
+    ylabel('State of Charge (\%)', 'Interpreter', 'latex', 'FontSize', 16);
+    title('Battery Charging Profiles for Different Firing Angles', 'Interpreter', 'latex', 'FontSize', 18);
+    
+    % Limit legend entries to avoid warning
+    if na <= 20
+        legend(legend_entries, 'Interpreter', 'latex', 'FontSize', 10, 'Location', 'best', 'NumColumns', 2);
+    else
+        % Show legend for every other entry if there are many
+        legend_subset = legend_entries(1:2:end);
+        legend(legend_subset, 'Interpreter', 'latex', 'FontSize', 9, 'Location', 'best', 'NumColumns', 3);
+    end
+    
+    ylim([max(0, SoC_init-5), 105]);
     hold off;
-else
-    t_charge_hours = charging_time_hours(alpha_idx);
-    t_charge_vec = linspace(0, t_charge_hours, 100);
-    SoC_vec = SoC_init + (SoC_target - SoC_init) * (t_charge_vec / t_charge_hours);
-    
-    figure('Name', 'Battery State of Charge vs Time');
-    plot(t_charge_vec, SoC_vec, 'b-', 'LineWidth', 2);
+elseif enablePlots
+    % Plot SoC vs time for ALL alpha values (when t_charge not provided)
+    figure('Name', 'Battery State of Charge vs Time (All Alphas)', 'Position', [100, 100, 900, 600]);
     hold on;
-    plot(0, SoC_init, 'go', 'MarkerSize', 10, 'MarkerFaceColor', 'g');
-    plot(t_charge_hours, SoC_target, 'ro', 'MarkerSize', 10, 'MarkerFaceColor', 'r');
+    
+    % Color map for different alpha values
+    colors = jet(na);
+    legend_entries = {};
+    
+    for k = 1:na
+        % Use the calculated charging time to reach target SoC for each alpha
+        t_plot = linspace(0, charging_time_hours(k), 100);
+        SoC_plot = SoC_init + (SoC_target - SoC_init) * (t_plot / charging_time_hours(k));
+        
+        plot(t_plot, SoC_plot, 'LineWidth', 2, 'Color', colors(k,:));
+        legend_entries{k} = sprintf('$\\alpha = %.0f^\\circ$', alpha_deg(k));
+    end
+    
     grid on;
-    xlabel('Time (hours)');
-    ylabel('State of Charge (%)');
-    title(sprintf('Battery Charging Profile (\\alpha = %.0f°)', alpha));
-    legend('SoC', 'Initial State', 'Target State', 'Location', 'southeast');
-    text(0, SoC_init-5, sprintf('  %.1f%%', SoC_init), 'FontSize', 10, 'Color', 'g');
-    text(t_charge_hours, SoC_target+5, sprintf('  %.1f%%', SoC_target), 'FontSize', 10, 'Color', 'r');
-    ylim([max(0, SoC_init-10), min(100, SoC_target+10)]);
+    set(gca, 'FontSize', 14, 'LineWidth', 1.2);
+    xlabel('Time (hours)', 'Interpreter', 'latex', 'FontSize', 16);
+    ylabel('State of Charge (\%)', 'Interpreter', 'latex', 'FontSize', 16);
+    title('Battery Charging Profiles for Different Firing Angles', 'Interpreter', 'latex', 'FontSize', 18);
+    
+    % Limit legend entries to avoid warning
+    if na <= 20
+        legend(legend_entries, 'Interpreter', 'latex', 'FontSize', 10, 'Location', 'best', 'NumColumns', 2);
+    else
+        % Show legend for every other entry if there are many
+        legend_subset = legend_entries(1:2:end);
+        legend(legend_subset, 'Interpreter', 'latex', 'FontSize', 9, 'Location', 'best', 'NumColumns', 3);
+    end
+    
+    ylim([max(0, SoC_init-5), min(100, SoC_target+10)]);
     hold off;
 end
 
@@ -382,14 +477,13 @@ end
 fprintf('\n========== Full-Wave CT Rectifier Analysis ==========\n');
 fprintf('Supply : %.1f V RMS, %.1f Hz\n', Vrms, f);
 fprintf('Battery: %.1f V, Rint -> %.3f Ohm, Capacity -> %.1f Ah\n', Vbat, Rbat, capacity);
-if Vt > 0 || Rth > 0 || Ileak > 0 || t_rise > 0 || t_fall > 0
+if Vt > 0 || Ileak > 0 || t_rise > 0 || t_fall > 0
     fprintf('Thyristor: Vt -> %.2f V, Rth -> %.4f Ohm, \n Ileak -> %.2f A, t_rise -> %.2e s, t_fall -> %.2e s\n', Vt, Rth, Ileak, t_rise, t_fall);
 end
-fprintf('Alpha Range: [%d : %d] deg \n', min(alpha_deg), max(alpha_deg));
+fprintf('Alpha Range: [%d : %d] deg\n', min(alpha_deg), max(alpha_deg));
 fprintf('======================================================\n');
 
-fprintf('\n========== Battery CHARGER Params ==========\n');
-fprintf('Firing Angle (α)    : %.0f°\n', alpha);
+fprintf('\n========== Battery CHARGER Params (α = %.0f°) ==========\n', alpha);
 fprintf('Average Output (Vdc): %.2f V\n', Vavg(alpha_idx));
 fprintf('Average Current     : %.2f A\n', Iavg(alpha_idx));
 fprintf('RMS Current         : %.2f A\n', Irms(alpha_idx));

@@ -12,20 +12,21 @@ capUnit = 'Ah';
 
 % SoC & time
 SoC_init = 12; 
-SoC_target = 100; 
+SoC_target = 100;
+t_charging_hours =  0.5; % Simulated User Input
 t_charge = inf;
 
 % Thyristor
-alpha_deg = 0:2:180; 
-Vt = 10; 
-Rth = 0;
-Ileak = 10; 
-t_rise = 10; 
-t_fall = 10;
+alpha = 30;
+alpha_deg = 0:2:180;         
+Vt = 1.5;       
+Rth = 0.001;  
+Ileak = 0.01;  
+t_rise = 1e-6;  
+t_fall = 2e-6;  
 
 % Simulation params 
 dt = 1/(300*f);
 
 % Visualization
 enablePlots = true;
-alpha = 30;
