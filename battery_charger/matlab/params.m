@@ -30,4 +30,4 @@ dt = 1/(300*f);
 
 % Visualization
 enablePlots = true;
-savePlots = true; 
+savePlots = false; 
