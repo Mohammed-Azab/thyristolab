@@ -1,7 +1,7 @@
 \section{Part I: Theoretical Background}
 
 \subsection{Thyristor (SCR) Operation}
-\TODO{Explain thyristor operation including:}
+% Explain thyristor operation including:
 \begin{itemize}
     \item Structure and symbol
     \item Operating characteristics (forward blocking, reverse blocking, conduction)
@@ -10,7 +10,7 @@
     \item V-I characteristics
 \end{itemize}
 
-\TODO{Add figure showing thyristor symbol and V-I characteristics}
+% Add figure showing thyristor symbol and V-I characteristics
 \begin{figure}[H]
     \centering
     % \includegraphics[width=0.7\textwidth]{thyristor_symbol.png}
@@ -19,10 +19,10 @@
 \end{figure}
 
 \subsection{Half-Wave Controlled Rectifier}
-\TODO{Describe half-wave rectifier theory:}
+% Describe half-wave rectifier theory:
 
 \subsubsection{Circuit Configuration}
-\TODO{Add circuit diagram}
+% Add circuit diagram
 \begin{figure}[H]
     \centering
     % \begin{circuitikz}
@@ -33,7 +33,7 @@
 \end{figure}
 
 \subsubsection{Mathematical Analysis}
-\TODO{Derive the following equations:}
+% Derive the following equations:
 
 Input voltage:
 \begin{equation}
@@ -56,13 +56,13 @@ RMS output voltage:
 
 where $\alpha$ is the firing angle.
 
-\TODO{Derive the output current equation considering battery EMF and resistance}
+% Derive the output current equation considering battery EMF and resistance
 
 \subsection{Full-Wave Controlled Rectifier - Center-Tapped}
-\TODO{Describe center-tapped full-wave rectifier theory:}
+% Describe center-tapped full-wave rectifier theory:
 
 \subsubsection{Circuit Configuration}
-\TODO{Add circuit diagram with center-tapped transformer and two SCRs}
+% Add circuit diagram with center-tapped transformer and two SCRs
 \begin{figure}[H]
     \centering
     % Circuit diagram
@@ -71,7 +71,7 @@ where $\alpha$ is the firing angle.
 \end{figure}
 
 \subsubsection{Mathematical Analysis}
-\TODO{Derive the following:}
+% Derive the following:
 
 Average output voltage:
 \begin{equation}
@@ -86,10 +86,10 @@ RMS output voltage:
 \end{equation}
 
 \subsection{Full-Wave Bridge Rectifier}
-\TODO{Describe bridge rectifier theory:}
+% Describe bridge rectifier theory:
 
 \subsubsection{Circuit Configuration}
-\TODO{Add circuit diagram with 4 SCRs in bridge configuration}
+% Add circuit diagram with 4 SCRs in bridge configuration
 \begin{figure}[H]
     \centering
     % Circuit diagram
@@ -98,7 +98,7 @@ RMS output voltage:
 \end{figure}
 
 \subsubsection{Mathematical Analysis}
-\TODO{Note that equations are same as center-tapped but circuit differences:}
+% Note that equations are same as center-tapped but circuit differences:
 \begin{itemize}
     \item No center-tapped transformer required
     \item Four thyristors instead of two
@@ -106,7 +106,7 @@ RMS output voltage:
 \end{itemize}
 
 \subsection{Battery Charging Characteristics}
-\TODO{Explain battery models:}
+% Explain battery models:
 
 \subsubsection{Simplified Battery Model}
 The battery is modeled as:
@@ -122,7 +122,7 @@ where:
 \end{itemize}
 
 \subsubsection{State of Charge (SoC)}
-\TODO{Explain SoC calculation:}
+% Explain SoC calculation:
 
 \begin{equation}
     SoC(t) = SoC_0 + \frac{1}{Q_{capacity}} \int_0^t i_{batt}(\tau) d\tau
@@ -131,7 +131,7 @@ where:
 where $Q_{capacity}$ is the battery capacity in Ampere-hours (Ah).
 
 \subsection{Power and Efficiency Analysis}
-\TODO{Derive expressions for:}
+% Derive expressions for:
 
 Average power delivered to battery:
 \begin{equation}
@@ -140,7 +140,7 @@ Average power delivered to battery:
 
 Power losses in thyristors (if considering non-idealities):
 \begin{equation}
-    P_{loss} = \TODO{Derive based on forward voltage drop and conduction time}
+    P_{loss} = V_t \cdot I_{avg} + R_{th} \cdot I_{rms}^2
 \end{equation}
 
 Efficiency:
