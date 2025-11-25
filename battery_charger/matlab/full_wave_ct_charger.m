@@ -394,26 +394,6 @@ if enablePlots
 end
 
 if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
-    % Plot Final SoC vs alpha (all alphas)
-    figure('Name', 'Full-Wave CT Rectifier - Firing Angle vs Final SoC', 'Position', [100, 100, 900, 600]);
-    plot(alpha_deg, SoC_final, 'b-', 'LineWidth', 2.5, 'Marker', 'o', 'MarkerSize', 8, 'MarkerFaceColor', 'b');
-    grid on;
-    set(gca, 'FontSize', 14, 'LineWidth', 1.2);
-    xlabel('Firing Angle $\alpha$ (degrees)', 'Interpreter', 'latex', 'FontSize', 16);
-    ylabel('Final State of Charge (\%)', 'Interpreter', 'latex', 'FontSize', 16);
-    title(sprintf('Final SoC after %.2f hours of charging', t_charge/3600), 'Interpreter', 'latex', 'FontSize', 18);
-    legend('Final SoC', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
-    
-    % Add annotation for the current alpha value
-    hold on;
-    plot(alpha, SoC_final(alpha_idx), 'ro', 'MarkerSize', 12, 'MarkerFaceColor', 'r', 'LineWidth', 2);
-    text(alpha, SoC_final(alpha_idx)+3, sprintf('$\\alpha = %.0f^\\circ$ %.1f\\%%', alpha, SoC_final(alpha_idx)), ...
-         'Interpreter', 'latex', 'FontSize', 12, 'HorizontalAlignment', 'center', 'Color', 'r', 'FontWeight', 'bold');
-    hold off;
-    
-    xlim([min(alpha_deg), max(alpha_deg)]);
-    ylim([max(0, min(SoC_final)-5), min(100, max(SoC_final)+5)]);
-    
     % Plot SoC vs time for ALL alpha values
     figure('Name', 'Battery State of Charge vs Time (All Alphas)', 'Position', [100, 100, 900, 600]);
     hold on;
@@ -457,24 +437,39 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     ylim([max(0, SoC_init-5), 105]);
     hold off;
 elseif enablePlots
-    t_charge_hours = charging_time_hours(alpha_idx);
-    t_charge_vec = linspace(0, t_charge_hours, 100);
-    SoC_vec = SoC_init + (SoC_target - SoC_init) * (t_charge_vec / t_charge_hours);
-    
-    figure('Name', 'Battery State of Charge vs Time', 'Position', [100, 100, 900, 600]);
-    plot(t_charge_vec, SoC_vec, 'b-', 'LineWidth', 3);
+    % Plot SoC vs time for ALL alpha values (when t_charge not provided)
+    figure('Name', 'Battery State of Charge vs Time (All Alphas)', 'Position', [100, 100, 900, 600]);
     hold on;
-    plot(0, SoC_init, 'go', 'MarkerSize', 12, 'MarkerFaceColor', 'g', 'LineWidth', 2);
-    plot(t_charge_hours, SoC_target, 'ro', 'MarkerSize', 12, 'MarkerFaceColor', 'r', 'LineWidth', 2);
+    
+    % Color map for different alpha values
+    colors = jet(na);
+    legend_entries = {};
+    
+    for k = 1:na
+        % Use the calculated charging time to reach target SoC for each alpha
+        t_plot = linspace(0, charging_time_hours(k), 100);
+        SoC_plot = SoC_init + (SoC_target - SoC_init) * (t_plot / charging_time_hours(k));
+        
+        plot(t_plot, SoC_plot, 'LineWidth', 2, 'Color', colors(k,:));
+        legend_entries{k} = sprintf('$\\alpha = %.0f^\\circ$', alpha_deg(k));
+    end
+    
     grid on;
     set(gca, 'FontSize', 14, 'LineWidth', 1.2);
     xlabel('Time (hours)', 'Interpreter', 'latex', 'FontSize', 16);
     ylabel('State of Charge (\%)', 'Interpreter', 'latex', 'FontSize', 16);
-    title(sprintf('Battery Charging Profile ($\\alpha = %.0f^\\circ$)', alpha), 'Interpreter', 'latex', 'FontSize', 18);
-    legend('SoC', 'Initial State', 'Target State', 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'southeast');
-    text(0, SoC_init-5, sprintf('  %.1f%%', SoC_init), 'FontSize', 12, 'Color', 'g', 'FontWeight', 'bold');
-    text(t_charge_hours, SoC_target+5, sprintf('  %.1f%%', SoC_target), 'FontSize', 12, 'Color', 'r', 'FontWeight', 'bold');
-    ylim([max(0, SoC_init-10), min(100, SoC_target+10)]);
+    title('Battery Charging Profiles for Different Firing Angles', 'Interpreter', 'latex', 'FontSize', 18);
+    
+    % Limit legend entries to avoid warning
+    if na <= 20
+        legend(legend_entries, 'Interpreter', 'latex', 'FontSize', 10, 'Location', 'best', 'NumColumns', 2);
+    else
+        % Show legend for every other entry if there are many
+        legend_subset = legend_entries(1:2:end);
+        legend(legend_subset, 'Interpreter', 'latex', 'FontSize', 9, 'Location', 'best', 'NumColumns', 3);
+    end
+    
+    ylim([max(0, SoC_init-5), min(100, SoC_target+10)]);
     hold off;
 end
 
