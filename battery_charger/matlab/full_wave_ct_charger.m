@@ -63,6 +63,11 @@ catch
     enablePlots_ws = false; 
 end
 try
+    savePlots_ws = evalin('base', 'savePlots');
+catch
+    savePlots_ws = false;
+end
+try
     Rth_ws = evalin('base', 'Rth');
 catch
     Rth_ws = 0;
@@ -92,6 +97,7 @@ addParameter(p, 't_rise', 0, @isnumeric);
 addParameter(p, 't_fall', 0, @isnumeric);
 addParameter(p, 'alpha', alpha_ws, @isnumeric); 
 addParameter(p, 'enablePlots', enablePlots_ws, @(x) islogical(x) || isnumeric(x));
+addParameter(p, 'savePlots', savePlots_ws, @(x) islogical(x) || isnumeric(x));
 parse(p, varargin{:});
 
 t_charge      = p.Results.t_charge;
@@ -104,6 +110,7 @@ Ileak         = p.Results.Ileak;
 t_rise        = p.Results.t_rise;
 t_fall        = p.Results.t_fall;
 enablePlots   = logical(p.Results.enablePlots);
+savePlots     = logical(p.Results.savePlots);
 alpha         = p.Results.alpha;
 
 if isstring(capUnit) || ischar(capUnit)
@@ -227,6 +234,14 @@ metrics = struct('Vavg', Vavg, 'Vrms', Vout_rms, 'Iavg', Iavg, 'Irms', Irms, ...
 
 [~, alpha_idx] = min(abs(alpha_deg - alpha));
 
+% Create output directory if savePlots is enabled
+if savePlots
+    output_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'figures', 'full_wave_ct');
+    if ~exist(output_dir, 'dir')
+        mkdir(output_dir);
+    end
+end
+
 if enablePlots
     % Time vector
     t_ms = theta / (2*pi*f) * 1000;
@@ -266,6 +281,10 @@ if enablePlots
     t_layout1 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
     title(t_layout1,sprintf('Full-Wave CT Rectifier Voltages ($\\alpha = %.0f^\\circ$, $V_m=%.1f$ V)', alpha, Vm), 'Interpreter', 'latex', 'FontSize', 18);
     
+    if savePlots
+        fig1 = gcf;
+    end
+    
     nexttile; 
     plot(t_ms, V_abs, 'b--', t_ms, Vbat*ones(size(t_ms)), 'g:', t_ms, v_out_demo, 'b-','LineWidth', 2); 
     grid on; 
@@ -288,13 +307,22 @@ if enablePlots
     grid on; 
     set(gca, 'FontSize', 12, 'LineWidth', 1);
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
-    ylabel('$V_{\mathrm{out}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
+    ylabel('$V_{\\mathrm{out}}$ (V)', 'Interpreter', 'latex', 'FontSize', 14);
     title('Output Voltage', 'Interpreter', 'latex', 'FontSize', 14);
+    
+    if savePlots
+        saveas(fig1, fullfile(output_dir, sprintf('full_wave_ct_voltages_alpha_%d.png', round(alpha))));
+        saveas(fig1, fullfile(output_dir, sprintf('full_wave_ct_voltages_alpha_%d.fig', round(alpha))));
+    end
     
     % Figure 2: Currents
     figure('Name', 'Full-Wave CT Rectifier - Currents', 'Position', [100, 100, 1200, 800]);
     t_layout2 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
     title(t_layout2,sprintf('Full-Wave CT Rectifier Currents ($\\alpha = %.0f^\\circ$)', alpha), 'Interpreter', 'latex', 'FontSize', 18);
+    
+    if savePlots
+        fig2 = gcf;
+    end
     
     nexttile; 
     plot(t_ms, i_demo, 'm-','LineWidth', 2); 
@@ -328,6 +356,11 @@ if enablePlots
     xlabel('Time (ms)', 'Interpreter', 'latex', 'FontSize', 14); 
     ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 14);
     
+    if savePlots
+        saveas(fig2, fullfile(output_dir, sprintf('full_wave_ct_currents_alpha_%d.png', round(alpha))));
+        saveas(fig2, fullfile(output_dir, sprintf('full_wave_ct_currents_alpha_%d.fig', round(alpha))));
+    end
+    
 end
 
 % Plot charging time vs alpha only when t_charge is not provided (computing time to reach target SoC)
@@ -353,6 +386,11 @@ if enablePlots && (isempty(t_charge) || isinf(t_charge))
     % Set reasonable axis limits
     xlim([min(alpha_deg), max(alpha_deg)]);
     ylim([min(charging_time_hours(charging_time_hours>0))*0.5, max(charging_time_hours)*1.5]);
+    
+    if savePlots
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_charging_time_vs_alpha.png'));
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_charging_time_vs_alpha.fig'));
+    end
 end
 
 % Power Losses vs Firing Angle
@@ -389,8 +427,13 @@ if enablePlots
     end
     grid on;
     set(gca, 'FontSize', 14, 'LineWidth', 1.2);
-    xlabel('Firing Angle $\alpha$ (degrees)', 'Interpreter', 'latex', 'FontSize', 16);
+    xlabel('Firing Angle $\\alpha$ (degrees)', 'Interpreter', 'latex', 'FontSize', 16);
     ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 16);
+    
+    if savePlots
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_power_losses_vs_alpha.png'));
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_power_losses_vs_alpha.fig'));
+    end
 end
 
 if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
@@ -436,6 +479,11 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     
     ylim([max(0, SoC_init-5), 105]);
     hold off;
+    
+    if savePlots
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_soc_vs_time_fixed_duration.png'));
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_soc_vs_time_fixed_duration.fig'));
+    end
 elseif enablePlots
     % Plot SoC vs time for ALL alpha values (when t_charge not provided)
     figure('Name', 'Battery State of Charge vs Time (All Alphas)', 'Position', [100, 100, 900, 600]);
@@ -471,6 +519,11 @@ elseif enablePlots
     
     ylim([max(0, SoC_init-5), min(100, SoC_target+10)]);
     hold off;
+    
+    if savePlots
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_soc_vs_time_target_soc.png'));
+        saveas(gcf, fullfile(output_dir, 'full_wave_ct_soc_vs_time_target_soc.fig'));
+    end
 end
 
 % Display system parameters

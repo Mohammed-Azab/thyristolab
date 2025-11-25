@@ -1,0 +1,6 @@
+# Ignore all generated plots
+*.png
+*.fig
+
+# Keep directory structure
+!.gitkeep
