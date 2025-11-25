@@ -120,9 +120,9 @@ for k = 1:nAlpha
     if I_charge <= 0
         charging_time_hours(k) = Inf;  % Time to reach 80% SoC is infinite
         if ~isempty(t_charge)
-            SoC_final(k) = SoC_init; % SoC doesn't change
+            SoC_final(k) = SoC_init;
         end
-        P_loss_avg(k) = Vrms * Ileak; % Only leakage loss (very small)
+        P_loss_avg(k) = Vrms * Ileak;  % Only leakage loss (very small)
         continue;    % skips the rest of the loop for this alpha
     end
 
@@ -198,3 +198,4 @@ end
 fprintf('=================================================\n\n');
 
 end
+% now you are good to go :)
