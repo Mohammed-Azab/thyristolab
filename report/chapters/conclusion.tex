@@ -13,86 +13,11 @@ This project investigated controlled rectifier circuits for battery charging app
     \item Generated extensive visualization of voltage and current waveforms, charging time curves, and power loss characteristics
 \end{itemize}
 
-\paragraph{Part II - Load Analysis:}
-\TODO{This section will be completed in the next phase of the project. Planned work includes:}
-\begin{itemize}
-    \item Simulink simulation of controlled rectifiers with R, RL, and highly inductive loads
-    \item Study of current continuity in different operating modes
-    \item Analysis of free-wheeling diode effects
-    \item Investigation of four-quadrant operation and regenerative modes
-    \item Firing circuit design and implementation
-\end{itemize}
-
-\subsection{Key Findings from Part I}
-
-\begin{enumerate}
-    \item \textbf{Firing Angle Effect:}
-    \begin{itemize}
-        \item Increasing firing angle decreases average output voltage and current
-        \item Results in exponentially longer charging times
-        \item Provides precise control over charging rate
-        \item Enables adaptive charging strategies based on battery SoC
-    \end{itemize}
-    
-    \item \textbf{Configuration Comparison:}
-    \begin{itemize}
-        \item Full-wave rectifiers provide approximately twice the average output voltage of half-wave
-        \item Charging time is significantly reduced with full-wave configurations
-        \item Bridge and center-tapped perform similarly in terms of electrical output
-        \item Bridge configuration requires no center-tapped transformer but uses four thyristors
-        \item Center-tapped uses only two thyristors but requires specialized transformer
-    \end{itemize}
-    
-    \item \textbf{Performance Metrics:}
-    \begin{itemize}
-        \item Half-wave rectifier: Simplest but slowest charging, highest ripple
-        \item Full-wave configurations: Better performance with reduced ripple and faster charging
-        \item Power losses dominated by battery internal resistance at low firing angles
-        \item Thyristor losses become more significant at higher current levels
-    \end{itemize}
-\end{enumerate}
-
 \subsection{Final Remarks}
 
 This project successfully demonstrated the design and analysis of thyristor-based controlled rectifiers for battery charging. The comprehensive MATLAB implementation provides a valuable tool for understanding the relationship between firing angle and charging performance across different rectifier topologies. The results show that full-wave configurations are significantly superior to half-wave for practical battery charging, with the choice between bridge and center-tapped depending on transformer availability and cost considerations.
 
 The modular design of the MATLAB functions and the extensive visualization capabilities make this work a useful foundation for further research and educational applications in power electronics.
-
-\subsection{Additional Findings}
-
-\subsubsection{Part II Findings}
-\begin{enumerate}
-    \item \textbf{Load Type Impact:}
-    \begin{itemize}
-        \item Resistive loads: Simple, discontinuous current, voltage and current in phase
-        \item RL loads: Complex behavior, possible continuous conduction, current lag
-        \item Highly inductive: Constant current, always CCM, enables regeneration
-    \end{itemize}
-    
-    \item \textbf{Current Continuity:}
-    \begin{itemize}
-        \item Determined by L/R ratio, firing angle, and rectifier type
-        \item Full-wave more likely to have CCM than half-wave
-        \item Important for predicting output characteristics
-    \end{itemize}
-    
-    \item \textbf{Free-Wheeling Diode:}
-    \begin{itemize}
-        \item Improves output voltage waveform
-        \item Eliminates negative voltage excursions
-        \item Prevents regenerative operation
-        \item Essential for motor drives operating only in Quadrant I
-    \end{itemize}
-    
-    \item \textbf{Four-Quadrant Operation:}
-    \begin{itemize}
-        \item $\alpha > 90°$ enables regenerative mode
-        \item Negative voltage with positive current observed
-        \item Important for braking in motor drives
-        \item Not possible with free-wheeling diode
-    \end{itemize}
-    
-\end{enumerate}
 
 \subsection{Final Remarks}
 
