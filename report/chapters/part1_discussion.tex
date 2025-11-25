@@ -40,22 +40,6 @@ Half-wave only justified for very low-power, cost-sensitive applications.
 
 \textbf{Selection:} Use bridge for most applications (standard transformers). Use center-tapped if already available or when minimizing voltage drops is critical.
 
-\subsection{Practical Considerations}
-
-SoC tracking enables adaptive control: fast charge at low SoC, taper to trickle at high SoC, prevents overcharging.
-
-Power loss analysis shows battery internal resistance dominates at high currents. Trade-off between fast charging (higher losses) and efficiency.
-
-\subsection{Design Recommendations}
-
-\begin{enumerate}
-    \item \textbf{Industrial Applications}: Use full-wave bridge, operate at $\alpha = 15^\circ$--$45^\circ$, implement SoC-based control
-    \item \textbf{Cost-Sensitive}: Consider half-wave if time not critical, optimize for balance of performance and stress
-    \item \textbf{High-Efficiency}: Select low $V_t$ thyristors, optimize firing angle, consider active cooling for high power
-\end{enumerate}
-
-\subsection{Practical Considerations}
-
 \subsubsection{Battery Charging Profile}
 \TODO{Discuss:}
 \begin{itemize}
@@ -75,7 +59,6 @@ Power loss analysis shows battery internal resistance dominates at high currents
     \item Thermal considerations
 \end{itemize}
 
-
 \subsection{Limitations of the Analysis}
 
 \subsubsection{Model Simplifications}
@@ -86,97 +69,4 @@ Power loss analysis shows battery internal resistance dominates at high currents
     \item Neglected parasitic elements
     \item Steady-state analysis only
     \item No closed-loop control consideration
-\end{itemize}
-
-\subsubsection{Real-World Factors Not Considered}
-\TODO{List factors that would affect real implementation:}
-\begin{itemize}
-    \item Supply voltage variations and harmonics
-    \item Temperature effects on battery and components
-    \item Component tolerances
-    \item EMI/EMC considerations
-    \item Aging effects
-\end{itemize}
-
-\subsection{Design Trade-offs}
-
-\subsubsection{Cost vs. Performance}
-\TODO{Analyze:}
-\begin{itemize}
-    \item Component count and cost
-    \item Transformer requirements and cost
-    \item Control circuit complexity
-    \item Overall system cost for each configuration
-\end{itemize}
-
-\subsubsection{Efficiency vs. Control Range}
-\TODO{Discuss:}
-\begin{itemize}
-    \item Efficiency variation with firing angle
-    \item Optimal operating range
-    \item Trade-off between controllability and efficiency
-\end{itemize}
-
-\subsubsection{Ripple vs. Complexity}
-\TODO{Analyze:}
-\begin{itemize}
-    \item Output voltage ripple characteristics
-    \item Need for filtering
-    \item Impact on battery life
-    \item Filter design considerations
-\end{itemize}
-
-\subsection{Recommendations}
-
-\subsubsection{Configuration Selection Guidelines}
-\TODO{Provide recommendations based on your analysis:}
-
-\paragraph{Use Half-Wave When:}
-\begin{itemize}
-    \item \TODO{e.g., Very low power applications}
-    \item \TODO{Cost is critical}
-    \item \TODO{Charging time is not critical}
-\end{itemize}
-
-\paragraph{Use Center-Tapped When:}
-\begin{itemize}
-    \item \TODO{e.g., Center-tapped transformer already available}
-    \item \TODO{Simple control is desired}
-    \item \TODO{Medium power applications}
-\end{itemize}
-
-\paragraph{Use Bridge When:}
-\begin{itemize}
-    \item \TODO{e.g., Most general-purpose applications}
-    \item \TODO{Standard transformer available}
-    \item \TODO{Higher efficiency needed}
-\end{itemize}
-
-\subsubsection{Operating Point Recommendations}
-\TODO{Suggest optimal operating conditions:}
-\begin{itemize}
-    \item Recommended firing angle range for each configuration
-    \item Charging current limits
-    \item Termination criteria
-\end{itemize}
-
-\subsection{Future Improvements}
-
-\subsubsection{Model Enhancements}
-\TODO{Suggest improvements to the model:}
-\begin{itemize}
-    \item More sophisticated battery model (e.g., equivalent circuit model)
-    \item Detailed thyristor switching model
-    \item Temperature dependence
-    \item Closed-loop control simulation
-\end{itemize}
-
-\subsubsection{Analysis Extensions}
-\TODO{Suggest additional analyses:}
-\begin{itemize}
-    \item Harmonic analysis
-    \item Power factor analysis
-    \item EMI prediction
-    \item Reliability analysis
-    \item Cost-benefit analysis
 \end{itemize}
