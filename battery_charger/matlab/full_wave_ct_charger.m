@@ -308,9 +308,18 @@ if enablePlots
     
     if savePlots
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig1, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig1, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig1, fullfile(output_dir, sprintf('full_wave_ct_voltages_alpha_%d.png', round(alpha))), 'Resolution', 300);
-        if isvalid(fig1) && isgraphics(fig1, 'figure')
-            savefig(fig1, fullfile(output_dir, sprintf('full_wave_ct_voltages_alpha_%d.fig', round(alpha))));
+        try
+            if isvalid(fig1) && isgraphics(fig1, 'figure')
+                savefig(fig1, fullfile(output_dir, sprintf('full_wave_ct_voltages_alpha_%d.fig', round(alpha))));
+            end
+        catch ME
+            % Silently skip .fig save if it fails (common with tiledlayout in older MATLAB versions)
         end
     end
     
@@ -353,9 +362,18 @@ if enablePlots
     
     if savePlots
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig2, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig2, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig2, fullfile(output_dir, sprintf('full_wave_ct_currents_alpha_%d.png', round(alpha))), 'Resolution', 300);
-        if isvalid(fig2) && isgraphics(fig2, 'figure')
-            savefig(fig2, fullfile(output_dir, sprintf('full_wave_ct_currents_alpha_%d.fig', round(alpha))));
+        try
+            if isvalid(fig2) && isgraphics(fig2, 'figure')
+                savefig(fig2, fullfile(output_dir, sprintf('full_wave_ct_currents_alpha_%d.fig', round(alpha))));
+            end
+        catch ME
+            % Silently skip .fig save if it fails (common with tiledlayout in older MATLAB versions)
         end
     end
     
@@ -388,9 +406,18 @@ if enablePlots && (isempty(t_charge) || isinf(t_charge))
     if savePlots
         fig_temp = gcf;
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig_temp, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig_temp, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig_temp, fullfile(output_dir, 'full_wave_ct_charging_time_vs_alpha.png'), 'Resolution', 300);
-        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
-            savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_charging_time_vs_alpha.fig'));
+        try
+            if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+                savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_charging_time_vs_alpha.fig'));
+            end
+        catch ME
+            % Silently skip .fig save if it fails
         end
     end
 end
@@ -416,9 +443,9 @@ if enablePlots
             leg_entries{end+1} = '$P_{\rm block} = V_{\rm block} I_{\rm leak}$';
         end
         if any(P_switching > 0)
-            leg_entries{end+1} = '$P_{\mathrm{switch}}$';
+            leg_entries{end+1} = '$P_{\rm switch}$';
         end
-        leg_entries{end+1} = '$P_{\mathrm{total}}$';
+        leg_entries{end+1} = '$P_{\rm total}$';
         legend(leg_entries, 'Interpreter', 'latex', 'FontSize', 14, 'Location', 'best');
         title('Power Losses vs Firing Angle', 'Interpreter', 'latex', 'FontSize', 18);
     else
@@ -435,9 +462,18 @@ if enablePlots
     if savePlots
         fig_temp = gcf;
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig_temp, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig_temp, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig_temp, fullfile(output_dir, 'full_wave_ct_power_losses_vs_alpha.png'), 'Resolution', 300);
-        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
-            savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_power_losses_vs_alpha.fig'));
+        try
+            if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+                savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_power_losses_vs_alpha.fig'));
+            end
+        catch ME
+            % Silently skip .fig save if it fails
         end
     end
 end
@@ -489,9 +525,18 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     if savePlots
         fig_temp = gcf;
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig_temp, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig_temp, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_fixed_duration.png'), 'Resolution', 300);
-        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
-            savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_fixed_duration.fig'));
+        try
+            if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+                savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_fixed_duration.fig'));
+            end
+        catch ME
+            % Silently skip .fig save if it fails
         end
     end
 elseif enablePlots
@@ -533,9 +578,18 @@ elseif enablePlots
     if savePlots
         fig_temp = gcf;
         drawnow;
+        % Disable toolbar to prevent export warning
+        set(fig_temp, 'ToolBar', 'none');
+        % Hide axes toolbar for all axes in the figure
+        allAxes = findall(fig_temp, 'type', 'axes');
+        set(allAxes, 'Toolbar', []);
         exportgraphics(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_target_soc.png'), 'Resolution', 300);
-        if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
-            savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_target_soc.fig'));
+        try
+            if isvalid(fig_temp) && isgraphics(fig_temp, 'figure')
+                savefig(fig_temp, fullfile(output_dir, 'full_wave_ct_soc_vs_time_target_soc.fig'));
+            end
+        catch ME
+            % Silently skip .fig save if it fails
         end
     end
 end
