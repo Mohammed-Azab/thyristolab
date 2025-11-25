@@ -280,13 +280,9 @@ if enablePlots
     v_th(~on_demo) = V_source(~on_demo);
     
     % Figure 1: Voltages
-    figure('Name', 'Half-Wave Rectifier - Voltages', 'Position', [100, 100, 1200, 800]);
+    fig1 = figure('Name', 'Half-Wave Rectifier - Voltages', 'Position', [100, 100, 1200, 800]);
     t_layout1 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
     title(t_layout1,sprintf('Half-Wave Rectifier Voltages ($\\alpha = %.0f^\\circ$, $V_m=%.1f$ V)', alpha, Vm), 'Interpreter', 'latex', 'FontSize', 18);
-    
-    if savePlots
-        fig1 = gcf;
-    end
     
     nexttile; 
     plot(t_ms, V_source, 'b--', t_ms, Vbat*ones(size(t_ms)), 'g:', t_ms, v_out_demo, 'b-','LineWidth', 2); 
@@ -315,17 +311,13 @@ if enablePlots
     
     if savePlots
         saveas(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.png', round(alpha))));
-        saveas(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.fig', round(alpha))));
+        savefig(fig1, fullfile(output_dir, sprintf('half_wave_voltages_alpha_%d.fig', round(alpha))));
     end
     
     % Figure 2: Currents
-    figure('Name', 'Half-Wave Rectifier - Currents', 'Position', [100, 100, 1200, 800]);
+    fig2 = figure('Name', 'Half-Wave Rectifier - Currents', 'Position', [100, 100, 1200, 800]);
     t_layout2 = tiledlayout(2,2,'TileSpacing','compact','Padding','compact');
     title(t_layout2,sprintf('Half-Wave Rectifier Currents ($\\alpha = %.0f^\\circ$)', alpha), 'Interpreter', 'latex', 'FontSize', 18);
-    
-    if savePlots
-        fig2 = gcf;
-    end
     
     nexttile; 
     plot(t_ms, i_demo, 'm-','LineWidth', 2); 
@@ -361,7 +353,7 @@ if enablePlots
     
     if savePlots
         saveas(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.png', round(alpha))));
-        saveas(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.fig', round(alpha))));
+        savefig(fig2, fullfile(output_dir, sprintf('half_wave_currents_alpha_%d.fig', round(alpha))));
     end
     
 end
@@ -391,8 +383,9 @@ if enablePlots && (isempty(t_charge) || isinf(t_charge))
     ylim([min(charging_time_hours(charging_time_hours>0))*0.5, max(charging_time_hours)*1.5]);
     
     if savePlots
-        saveas(gcf, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.png'));
-        saveas(gcf, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.fig'));
+        fig_temp = gcf;
+        saveas(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.png'));
+        savefig(fig_temp, fullfile(output_dir, 'half_wave_charging_time_vs_alpha.fig'));
     end
 end
 
@@ -434,8 +427,9 @@ if enablePlots
     ylabel('Power Loss (W)', 'Interpreter', 'latex', 'FontSize', 16);
     
     if savePlots
-        saveas(gcf, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.png'));
-        saveas(gcf, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.fig'));
+        fig_temp = gcf;
+        saveas(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.png'));
+        savefig(fig_temp, fullfile(output_dir, 'half_wave_power_losses_vs_alpha.fig'));
     end
 end
 
@@ -484,8 +478,9 @@ if enablePlots && ~isempty(t_charge) && ~isinf(t_charge)
     hold off;
     
     if savePlots
-        saveas(gcf, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.png'));
-        saveas(gcf, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.fig'));
+        fig_temp = gcf;
+        saveas(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.png'));
+        savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_fixed_duration.fig'));
     end
 elseif enablePlots
     % Plot SoC vs time for ALL alpha values (when t_charge not provided)
@@ -524,8 +519,9 @@ elseif enablePlots
     hold off;
     
     if savePlots
-        saveas(gcf, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.png'));
-        saveas(gcf, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.fig'));
+        fig_temp = gcf;
+        saveas(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.png'));
+        savefig(fig_temp, fullfile(output_dir, 'half_wave_soc_vs_time_target_soc.fig'));
     end
 end
 
