@@ -12,7 +12,8 @@ capUnit = 'Ah';
 
 % SoC & time
 SoC_init = 12; 
-SoC_target = 100; 
+SoC_target = 100;
+t_charging_hours =  0.5; % Simulated User Input
 t_charge = inf;
 
 % Thyristor
