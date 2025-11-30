@@ -108,3 +108,5 @@ report/*.toc
 # Backup files
 *_backup/
 backup/
+
+*.png
