@@ -25,5 +25,8 @@ scenarios(3).L = 200e-3;       % High inductance (H)
 pulse_amplitude = 5;           % Gate signal amplitude (V)
 pulse_width = 50;              % Pulse width (% of period)
 pulse_period = 1/f;            % Period based on line frequency (s)
-     
+    
+
+% Live plotting option
+enableLivePlot = true;  % Set to false to disable live plotting
 
