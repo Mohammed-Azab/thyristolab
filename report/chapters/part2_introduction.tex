@@ -1,23 +1,45 @@
-\section{Load Analysis (Future Work)}
+\section{Load Analysis and Rectifier Performance Study}
 
-\textbf{Note:} Part II will be completed in the next phase of the project.
+\subsection{Objectives}
 
-\subsection{Planned Objectives}
+This section presents a comprehensive analysis of controlled rectifier circuits operating with different load characteristics. The primary objectives of this study are:
 
-Simulate and analyze controlled rectifiers with different load types:
+\begin{enumerate}
+    \item \textbf{Simulate half-wave and full-wave controlled rectifiers} using thyristors (SCRs) with varying firing angles to understand phase-controlled rectification behavior
+    \item \textbf{Study the effect of different load types} including purely resistive (R), resistive-inductive (RL), and highly inductive loads on current and voltage waveforms
+    \item \textbf{Analyze the influence of firing angle} ($\alpha$) on average and RMS output voltage and current across the full control range (0° to 180°)
+    \item \textbf{Determine the role of free-wheeling diodes} in improving rectifier performance, particularly for inductive loads
+    \item \textbf{Compare the performance} of half-wave, center-tapped full-wave, and bridge full-wave rectifier configurations under various operating conditions
+    \item \textbf{Investigate special operating modes} including current continuity for inductive loads and cases of positive load current with negative output voltage
+    \item \textbf{Design firing circuits} using pulse generators with adjustable phase delay for thyristor gate control
+\end{enumerate}
+
+\subsection{System Specifications}
+
+The controlled rectifier systems analyzed in this study operate under the following specifications:
+
 \begin{itemize}
-    \item Resistive load (R)
-    \item Resistive-inductive load (RL)
-    \item Highly inductive load (L >> R)
-    \item Study current continuity modes
-    \item Analyze free-wheeling diode effects
-    \item Design firing circuits
+    \item \textbf{Supply Voltage:} 230 V RMS, 50 Hz single-phase sinusoidal source
+    \item \textbf{Load Configurations:}
+    \begin{itemize}
+        \item Resistive only: $R = 10$ $\Omega$, $L \approx 0$ H
+        \item R-L load: $R = 10$ $\Omega$, $L = 50$ mH
+        \item Highly inductive: $R = 5$ $\Omega$, $L = 200$ mH
+    \end{itemize}
+    \item \textbf{Firing Angle Range:} Adjustable from 0° to 180°
+    \item \textbf{Rectifier Topologies:} Half-wave, center-tapped full-wave, and bridge full-wave
+    \item \textbf{Free-wheeling Diode:} Analyzed both with and without FWD for each configuration
 \end{itemize}
 
-\subsection{Expected Findings}
+\subsection{Measured Parameters}
 
-\textbf{Resistive Load:} Current follows voltage, discontinuous at high $\alpha$
+For each rectifier configuration and load type, the following parameters are measured and analyzed:
 
-\textbf{RL Load:} Current lags voltage, extended conduction, smoother waveform
-
-\textbf{Highly Inductive:} Constant current, continuous conduction, enables regenerative operation
+\begin{itemize}
+    \item Load voltage and current waveforms (instantaneous values)
+    \item Thyristor voltage and current waveforms
+    \item Average load voltage as a function of firing angle
+    \item RMS load voltage and current
+    \item Current conduction angles and continuity
+    \item Power factor and harmonic content
+\end{itemize}
