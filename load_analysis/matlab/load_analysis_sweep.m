@@ -245,16 +245,53 @@ for si = 1:numel(scenarios)
                         fprintf('\n  DEBUG: Found %s (class: %s)', VoutVar, class(Vout));
                         if isstruct(Vout)
                             fprintf(', fields: %s', strjoin(fieldnames(Vout), ', '));
+                        elseif isobject(Vout)
+                            props = properties(Vout);
+                            fprintf(', properties: %s', strjoin(props, ', '));
                         end
                         fprintf('\n  DEBUG: Found %s (class: %s)', IoutVar, class(Iout));
                         if isstruct(Iout)
                             fprintf(', fields: %s', strjoin(fieldnames(Iout), ', '));
+                        elseif isobject(Iout)
+                            props = properties(Iout);
+                            fprintf(', properties: %s', strjoin(props, ', '));
                         end
                         fprintf('\n');
                     end
                     
                     % Extract data and time
-                    if isstruct(Vout) && isfield(Vout, 'Data')
+                    if isa(Vout, 'Simulink.SimulationOutput')
+                        % SimulationOutput object - check available properties
+                        props = properties(Vout);
+                        if ismember('logsout', props) && ~isempty(Vout.logsout)
+                            V_data = Vout.logsout.getElement(1).Values.Data;
+                            t_data = Vout.logsout.getElement(1).Values.Time;
+                        elseif ismember('yout', props) && ~isempty(Vout.yout)
+                            V_data = Vout.yout.Data;
+                            t_data = Vout.yout.Time;
+                        else
+                            % Try using who to see what's stored
+                            varNames = who(Vout);
+                            if alpha_deg == 0
+                                fprintf('  DEBUG: Vout contains variables: %s\n', strjoin(varNames, ', '));
+                            end
+                            % The data might be stored as a variable in the object
+                            if ~isempty(varNames)
+                                V_data = Vout.(varNames{1});
+                                if isstruct(V_data) && isfield(V_data, 'Data')
+                                    t_data = V_data.Time;
+                                    V_data = V_data.Data;
+                                elseif isstruct(V_data) && isfield(V_data, 'signals')
+                                    t_data = V_data.time;
+                                    V_data = V_data.signals.values;
+                                else
+                                    t_data = simOut.tout;
+                                end
+                            else
+                                error('Cannot find data in Vout SimulationOutput');
+                            end
+                        end
+                    elseif isstruct(Vout) && isfield(Vout, 'Data')
                         V_data = Vout.Data;
                         t_data = Vout.Time;
                     elseif isstruct(Vout) && isfield(Vout, 'signals')
@@ -270,7 +307,32 @@ for si = 1:numel(scenarios)
                         error('Unrecognized Vout structure');
                     end
                     
-                    if isstruct(Iout) && isfield(Iout, 'Data')
+                    if isa(Iout, 'Simulink.SimulationOutput')
+                        % SimulationOutput object - check available properties
+                        props = properties(Iout);
+                        if ismember('logsout', props) && ~isempty(Iout.logsout)
+                            I_data = Iout.logsout.getElement(1).Values.Data;
+                        elseif ismember('yout', props) && ~isempty(Iout.yout)
+                            I_data = Iout.yout.Data;
+                        else
+                            % Try using who to see what's stored
+                            varNames = who(Iout);
+                            if alpha_deg == 0
+                                fprintf('  DEBUG: Iout contains variables: %s\n', strjoin(varNames, ', '));
+                            end
+                            % The data might be stored as a variable in the object
+                            if ~isempty(varNames)
+                                I_data = Iout.(varNames{1});
+                                if isstruct(I_data) && isfield(I_data, 'Data')
+                                    I_data = I_data.Data;
+                                elseif isstruct(I_data) && isfield(I_data, 'signals')
+                                    I_data = I_data.signals.values;
+                                end
+                            else
+                                error('Cannot find data in Iout SimulationOutput');
+                            end
+                        end
+                    elseif isstruct(Iout) && isfield(Iout, 'Data')
                         I_data = Iout.Data;
                     elseif isstruct(Iout) && isfield(Iout, 'signals')
                         I_data = Iout.signals.values;
