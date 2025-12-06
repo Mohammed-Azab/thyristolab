@@ -38,3 +38,8 @@ enableLivePlot = false;  % Set to false to disable live plotting
 generateGraphs = true;   % Set to true to generate graphs after sweep
 graphAlphas = [30, 90, 180];  % Alpha values to plot (degrees)
 
+R = 30;
+L = 0.1;
+
+phase_delay = 0.005;
+phase_delay2 = 0.015;
