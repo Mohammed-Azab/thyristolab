@@ -1,6 +1,17 @@
 % Load parameters from params.m
 run params.m
 
+% Close all loaded Simulink models to avoid conflicts
+bd = find_system('type', 'block_diagram');
+for i = 1:length(bd)
+    if ~strcmp(bd{i}, 'simulink')
+        try
+            close_system(bd{i}, 0);
+        catch
+        end
+    end
+end
+
 saveFolder = fullfile(fileparts(mfilename('fullpath')),'results');
 if ~exist(saveFolder,'dir')
     mkdir(saveFolder);
@@ -25,6 +36,10 @@ for s=1:numel(scenarios)
     fprintf(' %d. %s: R=%.2f Ω, L=%.1f mH\n', s, scenarios(s).name, scenarios(s).R, scenarios(s).L*1000);
 end
 
+if enableLivePlot
+    figHandle = figure('Name', 'Live Waveforms', 'NumberTitle', 'off');
+end
+
 % Results container
 results = struct();
 % Main sweep loop - iterate over scenarios and models
@@ -42,6 +57,12 @@ for si = 1:numel(scenarios)
         % Close any existing model with the same name to avoid conflicts
         if bdIsLoaded(modelBase)
             fprintf('  Closing existing model instance...\n');
+            try
+                % Stop simulation if running
+                set_param(modelBase, 'SimulationCommand', 'stop');
+                pause(0.5); % Wait for simulation to stop
+            catch
+            end
             close_system(modelBase, 0);
         end
         
@@ -97,45 +118,77 @@ for si = 1:numel(scenarios)
             entry.simOut = simOut; %#ok<STRNU>
             
             % Post-process voltage and current from To Workspace blocks
+            V_data = [];
+            I_data = [];
+            t_data = [];
+            
             try
-                % Extract Vout and Iout from simOut (adjust field names if different)
-                if isfield(simOut, 'Vout')
-                    Vout = simOut.Vout;
+                % Check what's available
+                baseVars = evalin('base', 'who');
+                hasVout = ismember('Vout', baseVars);
+                hasIout = ismember('Iout', baseVars);
+                
+                if hasVout && hasIout
+                    % Get from base workspace
+                    Vout = evalin('base', 'Vout');
+                    Iout = evalin('base', 'Iout');
+                    
+                    % Extract data and time
                     if isstruct(Vout) && isfield(Vout, 'Data')
                         V_data = Vout.Data;
-                        V_time = Vout.Time;
+                        t_data = Vout.Time;
+                    elseif isstruct(Vout) && isfield(Vout, 'signals')
+                        V_data = Vout.signals.values;
+                        t_data = Vout.time;
                     else
                         V_data = Vout;
-                        V_time = simOut.tout;
+                        t_data = simOut.tout;
                     end
                     
-                    % Calculate average and RMS voltage
-                    entry.Vavg = mean(V_data);
-                    entry.Vrms = sqrt(mean(V_data.^2));
-                else
-                    entry.Vavg = NaN;
-                    entry.Vrms = NaN;
-                end
-                
-                if isfield(simOut, 'Iout')
-                    Iout = simOut.Iout;
                     if isstruct(Iout) && isfield(Iout, 'Data')
                         I_data = Iout.Data;
-                        I_time = Iout.Time;
+                    elseif isstruct(Iout) && isfield(Iout, 'signals')
+                        I_data = Iout.signals.values;
                     else
                         I_data = Iout;
-                        I_time = simOut.tout;
                     end
                     
-                    % Calculate average and RMS current
+                    % Calculate average and RMS values
+                    entry.Vavg = mean(V_data);
+                    entry.Vrms = sqrt(mean(V_data.^2));
                     entry.Iavg = mean(I_data);
                     entry.Irms = sqrt(mean(I_data.^2));
+                    
+                    % Live plotting
+                    if enableLivePlot && mod(ai, 6) == 1  % Plot every 6th alpha (0, 30, 60, 90...)
+                        figure(figHandle);
+                        subplot(2,1,1);
+                        plot(t_data, V_data, 'b-', 'LineWidth', 1.5);
+                        xlabel('Time (s)'); ylabel('Voltage (V)');
+                        title(sprintf('%s - %s: Voltage at α=%d°', modelBase, scenario.name, alpha_deg));
+                        grid on;
+                        
+                        subplot(2,1,2);
+                        plot(t_data, I_data, 'r-', 'LineWidth', 1.5);
+                        xlabel('Time (s)'); ylabel('Current (A)');
+                        title(sprintf('Current at α=%d°', alpha_deg));
+                        grid on;
+                        drawnow;
+                    end
                 else
+                    if alpha_deg == 0
+                        fprintf('\n  WARNING: Vout/Iout not in base workspace. Available vars: %s\n', strjoin(baseVars, ', '));
+                        fprintf('  Make sure To Workspace blocks are configured properly!\n');
+                    end
+                    entry.Vavg = NaN;
+                    entry.Vrms = NaN;
                     entry.Iavg = NaN;
                     entry.Irms = NaN;
                 end
             catch ME
-                warning('Could not extract Vout/Iout for alpha=%d: %s', alpha_deg, ME.message);
+                if alpha_deg == 0
+                    fprintf('\n  ERROR extracting data: %s\n', ME.message);
+                end
                 entry.Vavg = NaN;
                 entry.Vrms = NaN;
                 entry.Iavg = NaN;
