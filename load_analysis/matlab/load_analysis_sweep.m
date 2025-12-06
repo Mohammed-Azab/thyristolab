@@ -26,6 +26,37 @@ if isempty(files)
 end
 
 models = {files.name};
+
+% Filter models based on modelSelection parameter
+if ~strcmp(modelSelection, 'all')
+    modelMap = struct('ct', 'center_taped', 'bg', 'Full_Wave_Bridge', 'hf', 'half_wave');
+    
+    if ischar(modelSelection)
+        % Single model selection
+        if isfield(modelMap, modelSelection)
+            targetName = modelMap.(modelSelection);
+            models = models(contains(lower(models), lower(targetName)));
+        else
+            error('Invalid modelSelection: %s. Use ''all'', ''ct'', ''bg'', ''hf'', or cell array.', modelSelection);
+        end
+    elseif iscell(modelSelection)
+        % Multiple model selection
+        selectedModels = {};
+        for i = 1:length(modelSelection)
+            sel = modelSelection{i};
+            if isfield(modelMap, sel)
+                targetName = modelMap.(sel);
+                selectedModels = [selectedModels; models(contains(lower(models), lower(targetName)))];
+            end
+        end
+        models = unique(selectedModels);
+    end
+end
+
+if isempty(models)
+    error('No models match the selection criteria: %s', mat2str(modelSelection));
+end
+
 fprintf('Found %d model(s) in %s:\n', numel(models), slxDir);
 for k=1:numel(models)
     fprintf(' - %s\n', models{k});
@@ -58,12 +89,42 @@ for si = 1:numel(scenarios)
         if bdIsLoaded(modelBase)
             fprintf('  Closing existing model instance...\n');
             try
-                % Stop simulation if running
-                set_param(modelBase, 'SimulationCommand', 'stop');
-                pause(0.5); % Wait for simulation to stop
-            catch
+                % Check simulation status
+                simStatus = get_param(modelBase, 'SimulationStatus');
+                fprintf('    Current simulation status: %s\n', simStatus);
+                
+                % If compiling or running, stop it
+                if ~strcmp(simStatus, 'stopped')
+                    fprintf('    Stopping simulation...\n');
+                    set_param(modelBase, 'SimulationCommand', 'stop');
+                    % Wait until simulation actually stops
+                    timeout = 10; % seconds
+                    startTime = tic;
+                    while ~strcmp(get_param(modelBase, 'SimulationStatus'), 'stopped') && toc(startTime) < timeout
+                        pause(0.2);
+                    end
+                    simStatus = get_param(modelBase, 'SimulationStatus');
+                    if ~strcmp(simStatus, 'stopped')
+                        warning('Simulation did not stop within timeout (status: %s)', simStatus);
+                    else
+                        fprintf('    Simulation stopped.\n');
+                    end
+                end
+            catch ME
+                warning('Error checking/stopping simulation: %s', ME.message);
             end
-            close_system(modelBase, 0);
+            
+            % Give it a moment before closing
+            pause(0.5);
+            
+            % Now try to close
+            try
+                close_system(modelBase, 0);
+                fprintf('    Model closed successfully.\n');
+            catch ME
+                warning('Could not close model %s: %s', modelBase, ME.message);
+                fprintf('    Skipping model close - will try to load anyway...\n');
+            end
         end
         
         % Load model from specified path
@@ -125,13 +186,72 @@ for si = 1:numel(scenarios)
             try
                 % Check what's available
                 baseVars = evalin('base', 'who');
-                hasVout = ismember('Vout', baseVars);
-                hasIout = ismember('Iout', baseVars);
+                
+                % Try common variable names for To Workspace blocks
+                vNames = {'Vout', 'vout', 'V_out', 'voltage', 'out'};
+                iNames = {'Iout', 'iout', 'I_out', 'current', 'out'};
+                
+                hasVout = false;
+                hasIout = false;
+                VoutVar = '';
+                IoutVar = '';
+                
+                % Find voltage variable
+                for v = 1:length(vNames)
+                    if ismember(vNames{v}, baseVars)
+                        VoutVar = vNames{v};
+                        hasVout = true;
+                        break;
+                    end
+                end
+                
+                % Find current variable
+                for v = 1:length(iNames)
+                    if ismember(iNames{v}, baseVars)
+                        IoutVar = iNames{v};
+                        hasIout = true;
+                        break;
+                    end
+                end
+                
+                % Check if 'out' is a structure with multiple signals
+                if ismember('out', baseVars) && ~hasVout && ~hasIout
+                    outData = evalin('base', 'out');
+                    if isstruct(outData)
+                        % Check for common field names in 'out' structure
+                        fnames = fieldnames(outData);
+                        if alpha_deg == 0
+                            fprintf('\n  DEBUG: ''out'' structure has fields: %s\n', strjoin(fnames, ', '));
+                        end
+                        % You may need to adapt field names based on your model
+                        if ismember('Vout', fnames) || ismember('voltage', fnames)
+                            VoutVar = 'out';
+                            hasVout = true;
+                        end
+                        if ismember('Iout', fnames) || ismember('current', fnames)
+                            IoutVar = 'out';
+                            hasIout = true;
+                        end
+                    end
+                end
                 
                 if hasVout && hasIout
                     % Get from base workspace
-                    Vout = evalin('base', 'Vout');
-                    Iout = evalin('base', 'Iout');
+                    Vout = evalin('base', VoutVar);
+                    Iout = evalin('base', IoutVar);
+                    
+                    % Debug output for first alpha
+                    if alpha_deg == 0
+                        fprintf('\n  DEBUG: Found %s (class: %s)', VoutVar, class(Vout));
+                        if isstruct(Vout)
+                            fprintf(', fields: %s', strjoin(fieldnames(Vout), ', '));
+                        end
+                        fprintf('\n  DEBUG: Found %s (class: %s)', IoutVar, class(Iout));
+                        if isstruct(Iout)
+                            fprintf(', fields: %s', strjoin(fieldnames(Iout), ', '));
+                        end
+                        fprintf('\n');
+                    end
                     
                     % Extract data and time
                     if isstruct(Vout) && isfield(Vout, 'Data')
@@ -140,17 +260,31 @@ for si = 1:numel(scenarios)
                     elseif isstruct(Vout) && isfield(Vout, 'signals')
                         V_data = Vout.signals.values;
                         t_data = Vout.time;
-                    else
+                    elseif isstruct(Vout) && isfield(Vout, 'time') && isfield(Vout, 'signals')
+                        V_data = Vout.signals(1).values;
+                        t_data = Vout.time;
+                    elseif isnumeric(Vout) || islogical(Vout)
                         V_data = Vout;
                         t_data = simOut.tout;
+                    else
+                        error('Unrecognized Vout structure');
                     end
                     
                     if isstruct(Iout) && isfield(Iout, 'Data')
                         I_data = Iout.Data;
                     elseif isstruct(Iout) && isfield(Iout, 'signals')
                         I_data = Iout.signals.values;
-                    else
+                    elseif isstruct(Iout) && isfield(Iout, 'time') && isfield(Iout, 'signals')
+                        I_data = Iout.signals(1).values;
+                    elseif isnumeric(Iout) || islogical(Iout)
                         I_data = Iout;
+                    else
+                        error('Unrecognized Iout structure');
+                    end
+                    
+                    % Ensure data is numeric
+                    if ~isnumeric(V_data) || ~isnumeric(I_data)
+                        error('V_data or I_data is not numeric');
                     end
                     
                     % Calculate average and RMS values
