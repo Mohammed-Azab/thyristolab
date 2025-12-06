@@ -136,6 +136,7 @@ for si = 1:numel(scenarios)
             alpha_deg = alphas_deg(ai);
             % convert alpha to phase delay time for Pulse Generator
             phase_delay = (alpha_deg/360) * (1/f);
+            phase_delay2 = phase_delay + (1/(2*f));
             
             % push variables to base workspace so model blocks can read them
             assignin('base','alpha_deg',alpha_deg);
@@ -151,6 +152,9 @@ for si = 1:numel(scenarios)
             assignin('base','pulse_amplitude',pulse_amplitude);
             assignin('base','pulse_width',pulse_width);
             assignin('base','pulse_period',pulse_period);
+            
+            % Clear any old To Workspace variables to avoid stale data
+            evalin('base', 'clear Vout Iout V_data I_data vout iout');
             
             fprintf('  alpha = %3d deg -> phase_delay = %.6f s ... ', alpha_deg, phase_delay);
             
@@ -181,86 +185,96 @@ for si = 1:numel(scenarios)
             % Post-process voltage and current from To Workspace blocks
             V_data = [];
             I_data = [];
-            t_data = [];
+            t_data = simOut.tout;
             
             try
-                % Check what's available
-                baseVars = evalin('base', 'who');
-                
-                % Try common variable names for To Workspace blocks
-                vNames = {'Vout', 'vout', 'V_out', 'voltage', 'out'};
-                iNames = {'Iout', 'iout', 'I_out', 'current', 'out'};
-                
+                % First, check if simOut has Vout and Iout properties (from To Workspace blocks)
                 hasVout = false;
                 hasIout = false;
-                VoutVar = '';
-                IoutVar = '';
                 
-                % Find voltage variable
-                for v = 1:length(vNames)
-                    if ismember(vNames{v}, baseVars)
-                        VoutVar = vNames{v};
+                if isprop(simOut, 'Vout') && isprop(simOut, 'Iout')
+                    Vout = simOut.Vout;
+                    Iout = simOut.Iout;
+                    
+                    if alpha_deg == 0
+                        fprintf('  DEBUG: simOut.Vout class=%s size=%s\n', class(Vout), mat2str(size(Vout)));
+                        fprintf('  DEBUG: simOut.Iout class=%s size=%s\n', class(Iout), mat2str(size(Iout)));
+                    end
+                    
+                    % Check if they contain data
+                    if ~isempty(Vout) && ~isempty(Iout)
                         hasVout = true;
-                        break;
-                    end
-                end
-                
-                % Find current variable
-                for v = 1:length(iNames)
-                    if ismember(iNames{v}, baseVars)
-                        IoutVar = iNames{v};
                         hasIout = true;
-                        break;
                     end
                 end
                 
-                % Check if 'out' is a structure with multiple signals
-                if ismember('out', baseVars) && ~hasVout && ~hasIout
-                    outData = evalin('base', 'out');
-                    if isstruct(outData)
-                        % Check for common field names in 'out' structure
-                        fnames = fieldnames(outData);
-                        if alpha_deg == 0
-                            fprintf('\n  DEBUG: ''out'' structure has fields: %s\n', strjoin(fnames, ', '));
-                        end
-                        % You may need to adapt field names based on your model
-                        if ismember('Vout', fnames) || ismember('voltage', fnames)
-                            VoutVar = 'out';
+                % If not found in simOut, check base workspace
+                if ~hasVout || ~hasIout
+                    baseVars = evalin('base', 'who');
+                    
+                    if alpha_deg == 0
+                        fprintf('  DEBUG: Checking base workspace variables: %s\n', strjoin(baseVars, ', '));
+                    end
+                
+                    if alpha_deg == 0
+                        fprintf('  DEBUG: Checking base workspace variables: %s\n', strjoin(baseVars, ', '));
+                    end
+                    
+                    VoutVar = '';
+                    IoutVar = '';
+                    
+                    % Check V_data and I_data FIRST since they're the most common
+                    vNames = {'V_data', 'Vout', 'vout', 'V_out', 'voltage'};
+                    iNames = {'I_data', 'Iout', 'iout', 'I_out', 'current'};
+                    
+                    % Find voltage variable
+                    for v = 1:length(vNames)
+                        if ismember(vNames{v}, baseVars)
+                            VoutVar = vNames{v};
+                            Vout = evalin('base', VoutVar);
                             hasVout = true;
+                            if alpha_deg == 0
+                                fprintf('  DEBUG: Found voltage in base: %s (class=%s, size=%s)\n', VoutVar, class(Vout), mat2str(size(Vout)));
+                            end
+                            break;
                         end
-                        if ismember('Iout', fnames) || ismember('current', fnames)
-                            IoutVar = 'out';
+                    end
+                    
+                    % Find current variable
+                    for v = 1:length(iNames)
+                        if ismember(iNames{v}, baseVars)
+                            IoutVar = iNames{v};
+                            Iout = evalin('base', IoutVar);
                             hasIout = true;
+                            if alpha_deg == 0
+                                fprintf('  DEBUG: Found current in base: %s (class=%s, size=%s)\n', IoutVar, class(Iout), mat2str(size(Iout)));
+                            end
+                            break;
                         end
                     end
                 end
                 
                 if hasVout && hasIout
-                    % Get from base workspace
-                    Vout = evalin('base', VoutVar);
-                    Iout = evalin('base', IoutVar);
-                    
-                    % Debug output for first alpha
                     if alpha_deg == 0
-                        fprintf('\n  DEBUG: Found %s (class: %s)', VoutVar, class(Vout));
-                        if isstruct(Vout)
-                            fprintf(', fields: %s', strjoin(fieldnames(Vout), ', '));
-                        elseif isobject(Vout)
-                            props = properties(Vout);
-                            fprintf(', properties: %s', strjoin(props, ', '));
-                        end
-                        fprintf('\n  DEBUG: Found %s (class: %s)', IoutVar, class(Iout));
-                        if isstruct(Iout)
-                            fprintf(', fields: %s', strjoin(fieldnames(Iout), ', '));
-                        elseif isobject(Iout)
-                            props = properties(Iout);
-                            fprintf(', properties: %s', strjoin(props, ', '));
-                        end
-                        fprintf('\n');
+                        fprintf('  DEBUG: Processing Vout (class=%s, size=%s)\n', class(Vout), mat2str(size(Vout)));
+                        fprintf('  DEBUG: Processing Iout (class=%s, size=%s)\n', class(Iout), mat2str(size(Iout)));
                     end
                     
-                    % Extract data and time
-                    if isa(Vout, 'Simulink.SimulationOutput')
+                    % Extract data and time - handle timeseries first (most common for Simulink)
+                    if isa(Vout, 'timeseries')
+                        V_data = Vout.Data;
+                        t_data = Vout.Time;
+                    elseif isnumeric(Vout) || islogical(Vout)
+                        % Handle Array or Array (2-D) format
+                        if ~isvector(Vout) && size(Vout, 2) > 1
+                            % 2-D array: last column is signal data
+                            V_data = Vout(:, end);
+                        else
+                            % 1-D array or vector
+                            V_data = Vout(:);
+                        end
+                        t_data = simOut.tout;
+                    elseif isa(Vout, 'Simulink.SimulationOutput')
                         % SimulationOutput object - check available properties
                         props = properties(Vout);
                         if ismember('logsout', props) && ~isempty(Vout.logsout)
@@ -270,12 +284,7 @@ for si = 1:numel(scenarios)
                             V_data = Vout.yout.Data;
                             t_data = Vout.yout.Time;
                         else
-                            % Try using who to see what's stored
                             varNames = who(Vout);
-                            if alpha_deg == 0
-                                fprintf('  DEBUG: Vout contains variables: %s\n', strjoin(varNames, ', '));
-                            end
-                            % The data might be stored as a variable in the object
                             if ~isempty(varNames)
                                 V_data = Vout.(varNames{1});
                                 if isstruct(V_data) && isfield(V_data, 'Data')
@@ -300,14 +309,23 @@ for si = 1:numel(scenarios)
                     elseif isstruct(Vout) && isfield(Vout, 'time') && isfield(Vout, 'signals')
                         V_data = Vout.signals(1).values;
                         t_data = Vout.time;
-                    elseif isnumeric(Vout) || islogical(Vout)
-                        V_data = Vout;
-                        t_data = simOut.tout;
                     else
                         error('Unrecognized Vout structure');
                     end
                     
-                    if isa(Iout, 'Simulink.SimulationOutput')
+                    % Extract current data - handle timeseries first
+                    if isa(Iout, 'timeseries')
+                        I_data = Iout.Data;
+                    elseif isnumeric(Iout) || islogical(Iout)
+                        % Handle Array or Array (2-D) format
+                        if ~isvector(Iout) && size(Iout, 2) > 1
+                            % 2-D array: last column is signal data
+                            I_data = Iout(:, end);
+                        else
+                            % 1-D array or vector
+                            I_data = Iout(:);
+                        end
+                    elseif isa(Iout, 'Simulink.SimulationOutput')
                         % SimulationOutput object - check available properties
                         props = properties(Iout);
                         if ismember('logsout', props) && ~isempty(Iout.logsout)
@@ -315,12 +333,7 @@ for si = 1:numel(scenarios)
                         elseif ismember('yout', props) && ~isempty(Iout.yout)
                             I_data = Iout.yout.Data;
                         else
-                            % Try using who to see what's stored
                             varNames = who(Iout);
-                            if alpha_deg == 0
-                                fprintf('  DEBUG: Iout contains variables: %s\n', strjoin(varNames, ', '));
-                            end
-                            % The data might be stored as a variable in the object
                             if ~isempty(varNames)
                                 I_data = Iout.(varNames{1});
                                 if isstruct(I_data) && isfield(I_data, 'Data')
@@ -338,15 +351,26 @@ for si = 1:numel(scenarios)
                         I_data = Iout.signals.values;
                     elseif isstruct(Iout) && isfield(Iout, 'time') && isfield(Iout, 'signals')
                         I_data = Iout.signals(1).values;
-                    elseif isnumeric(Iout) || islogical(Iout)
-                        I_data = Iout;
                     else
                         error('Unrecognized Iout structure');
                     end
                     
-                    % Ensure data is numeric
+                    % Ensure data is numeric and time vector exists
                     if ~isnumeric(V_data) || ~isnumeric(I_data)
                         error('V_data or I_data is not numeric');
+                    end
+                    if ~isnumeric(t_data) || isempty(t_data)
+                        error('t_data is not a valid numeric vector');
+                    end
+                    
+                    % Ensure all vectors have compatible dimensions
+                    V_data = V_data(:);  % Force column vector
+                    I_data = I_data(:);  % Force column vector
+                    t_data = t_data(:);  % Force column vector
+                    
+                    if length(t_data) ~= length(V_data) || length(t_data) ~= length(I_data)
+                        error('Data length mismatch: t_data(%d), V_data(%d), I_data(%d)', ...
+                            length(t_data), length(V_data), length(I_data));
                     end
                     
                     % Calculate average and RMS values
@@ -372,19 +396,14 @@ for si = 1:numel(scenarios)
                         drawnow;
                     end
                 else
-                    if alpha_deg == 0
-                        fprintf('\n  WARNING: Vout/Iout not in base workspace. Available vars: %s\n', strjoin(baseVars, ', '));
-                        fprintf('  Make sure To Workspace blocks are configured properly!\n');
-                    end
+                    warning('Vout/Iout not found in workspace for %s at alpha=%d', modelBase, alpha_deg);
                     entry.Vavg = NaN;
                     entry.Vrms = NaN;
                     entry.Iavg = NaN;
                     entry.Irms = NaN;
                 end
             catch ME
-                if alpha_deg == 0
-                    fprintf('\n  ERROR extracting data: %s\n', ME.message);
-                end
+                warning('Error extracting data for %s at alpha=%d: %s', modelBase, alpha_deg, ME.message);
                 entry.Vavg = NaN;
                 entry.Vrms = NaN;
                 entry.Iavg = NaN;
