@@ -22,7 +22,7 @@ scenarios(3).R = 5;            % Lower resistance (ohms)
 scenarios(3).L = 200e-3;       % High inductance (H)
 
 % Pulse Generator parameters
-pulse_amplitude = 5;           % Gate signal amplitude (V)
+pulse_amplitude = 10;           % Gate signal amplitude (V)
 pulse_width = 50;              % Pulse width (% of period)
 pulse_period = 1/f;            % Period based on line frequency (s)
 
@@ -32,5 +32,9 @@ modelSelection = 'ct';        % Options: 'all', 'ct', 'bg', 'hf', or {'ct', 'bg'
     
 
 % Live plotting option
-enableLivePlot = true;  % Set to false to disable live plotting
+enableLivePlot = false;  % Set to false to disable live plotting
+
+% Graph generation option
+generateGraphs = true;   % Set to true to generate graphs after sweep
+graphAlphas = [30, 90, 180];  % Alpha values to plot (degrees)
 
