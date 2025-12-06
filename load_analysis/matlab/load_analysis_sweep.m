@@ -1,7 +1,5 @@
-% Load parameters from params.m
 run params.m
 
-% Close all loaded Simulink models to avoid conflicts
 bd = find_system('type', 'block_diagram');
 for i = 1:length(bd)
     if ~strcmp(bd{i}, 'simulink')
@@ -17,7 +15,6 @@ if ~exist(saveFolder,'dir')
     mkdir(saveFolder);
 end
 
-% locate models in ../simulink
 scriptDir = fileparts(mfilename('fullpath'));
 slxDir = fullfile(scriptDir,'..','simulink');
 files = dir(fullfile(slxDir,'*.slx'));
@@ -27,12 +24,10 @@ end
 
 models = {files.name};
 
-% Filter models based on modelSelection parameter
 if ~strcmp(modelSelection, 'all')
     modelMap = struct('ct', 'center_taped', 'bg', 'Full_Wave_Bridge', 'hf', 'half_wave');
     
     if ischar(modelSelection)
-        % Single model selection
         if isfield(modelMap, modelSelection)
             targetName = modelMap.(modelSelection);
             models = models(contains(lower(models), lower(targetName)));
@@ -40,7 +35,6 @@ if ~strcmp(modelSelection, 'all')
             error('Invalid modelSelection: %s. Use ''all'', ''ct'', ''bg'', ''hf'', or cell array.', modelSelection);
         end
     elseif iscell(modelSelection)
-        % Multiple model selection
         selectedModels = {};
         for i = 1:length(modelSelection)
             sel = modelSelection{i};
@@ -71,9 +65,8 @@ if enableLivePlot
     figHandle = figure('Name', 'Live Waveforms', 'NumberTitle', 'off');
 end
 
-% Results container
 results = struct();
-% Main sweep loop - iterate over scenarios and models
+
 for si = 1:numel(scenarios)
     scenario = scenarios(si);
     fprintf('\n========== Scenario %d: %s ==========\n', si, scenario.name);
@@ -85,20 +78,16 @@ for si = 1:numel(scenarios)
         
         fprintf('\nRunning model: %s\n', modelName);
         
-        % Close any existing model with the same name to avoid conflicts
         if bdIsLoaded(modelBase)
             fprintf('  Closing existing model instance...\n');
             try
-                % Check simulation status
                 simStatus = get_param(modelBase, 'SimulationStatus');
                 fprintf('    Current simulation status: %s\n', simStatus);
                 
-                % If compiling or running, stop it
                 if ~strcmp(simStatus, 'stopped')
                     fprintf('    Stopping simulation...\n');
                     set_param(modelBase, 'SimulationCommand', 'stop');
-                    % Wait until simulation actually stops
-                    timeout = 10; % seconds
+                    timeout = 10;
                     startTime = tic;
                     while ~strcmp(get_param(modelBase, 'SimulationStatus'), 'stopped') && toc(startTime) < timeout
                         pause(0.2);
@@ -114,10 +103,8 @@ for si = 1:numel(scenarios)
                 warning('Error checking/stopping simulation: %s', ME.message);
             end
             
-            % Give it a moment before closing
             pause(0.5);
             
-            % Now try to close
             try
                 close_system(modelBase, 0);
                 fprintf('    Model closed successfully.\n');
@@ -127,38 +114,29 @@ for si = 1:numel(scenarios)
             end
         end
         
-        % Load model from specified path
         load_system(modelPath);
         
         modelResults = cell(numel(alphas_deg),1);
         
         for ai = 1:numel(alphas_deg)
             alpha_deg = alphas_deg(ai);
-            % convert alpha to phase delay time for Pulse Generator
             phase_delay = (alpha_deg/360) * (1/f);
             phase_delay2 = phase_delay + (1/(2*f));
             
-            % push variables to base workspace so model blocks can read them
             assignin('base','alpha_deg',alpha_deg);
             assignin('base','phase_delay',phase_delay);
             assignin('base','f',f);
             assignin('base','Vrms',Vrms);
-            
-            % Load scenario parameters
             assignin('base','R',scenario.R);
             assignin('base','L',scenario.L);
-            
-            % Pulse generator parameters
             assignin('base','pulse_amplitude',pulse_amplitude);
             assignin('base','pulse_width',pulse_width);
             assignin('base','pulse_period',pulse_period);
             
-            % Clear any old To Workspace variables to avoid stale data
             evalin('base', 'clear Vout Iout V_data I_data vout iout');
             
             fprintf('  alpha = %3d deg -> phase_delay = %.6f s ... ', alpha_deg, phase_delay);
             
-            % run simulation and collect SimulationOutput
             try
                 simOut = sim(modelBase, ...
                     'StopTime', num2str(simTime), ...
@@ -175,20 +153,17 @@ for si = 1:numel(scenarios)
             
             fprintf('OK\n');
             
-            % package useful outputs
             entry.alpha_deg = alpha_deg;
             entry.phase_delay = phase_delay;
             entry.R = scenario.R;
             entry.L = scenario.L;
-            entry.simOut = simOut; %#ok<STRNU>
+            entry.simOut = simOut;
             
-            % Post-process voltage and current from To Workspace blocks
             V_data = [];
             I_data = [];
             t_data = simOut.tout;
             
             try
-                % First, check if simOut has Vout and Iout properties (from To Workspace blocks)
                 hasVout = false;
                 hasIout = false;
                 
@@ -196,86 +171,52 @@ for si = 1:numel(scenarios)
                     Vout = simOut.Vout;
                     Iout = simOut.Iout;
                     
-                    if alpha_deg == 0
-                        fprintf('  DEBUG: simOut.Vout class=%s size=%s\n', class(Vout), mat2str(size(Vout)));
-                        fprintf('  DEBUG: simOut.Iout class=%s size=%s\n', class(Iout), mat2str(size(Iout)));
-                    end
-                    
-                    % Check if they contain data
                     if ~isempty(Vout) && ~isempty(Iout)
                         hasVout = true;
                         hasIout = true;
                     end
                 end
                 
-                % If not found in simOut, check base workspace
                 if ~hasVout || ~hasIout
                     baseVars = evalin('base', 'who');
-                    
-                    if alpha_deg == 0
-                        fprintf('  DEBUG: Checking base workspace variables: %s\n', strjoin(baseVars, ', '));
-                    end
-                
-                    if alpha_deg == 0
-                        fprintf('  DEBUG: Checking base workspace variables: %s\n', strjoin(baseVars, ', '));
-                    end
                     
                     VoutVar = '';
                     IoutVar = '';
                     
-                    % Check V_data and I_data FIRST since they're the most common
                     vNames = {'V_data', 'Vout', 'vout', 'V_out', 'voltage'};
                     iNames = {'I_data', 'Iout', 'iout', 'I_out', 'current'};
                     
-                    % Find voltage variable
                     for v = 1:length(vNames)
                         if ismember(vNames{v}, baseVars)
                             VoutVar = vNames{v};
                             Vout = evalin('base', VoutVar);
                             hasVout = true;
-                            if alpha_deg == 0
-                                fprintf('  DEBUG: Found voltage in base: %s (class=%s, size=%s)\n', VoutVar, class(Vout), mat2str(size(Vout)));
-                            end
                             break;
                         end
                     end
                     
-                    % Find current variable
                     for v = 1:length(iNames)
                         if ismember(iNames{v}, baseVars)
                             IoutVar = iNames{v};
                             Iout = evalin('base', IoutVar);
                             hasIout = true;
-                            if alpha_deg == 0
-                                fprintf('  DEBUG: Found current in base: %s (class=%s, size=%s)\n', IoutVar, class(Iout), mat2str(size(Iout)));
-                            end
                             break;
                         end
                     end
                 end
                 
                 if hasVout && hasIout
-                    if alpha_deg == 0
-                        fprintf('  DEBUG: Processing Vout (class=%s, size=%s)\n', class(Vout), mat2str(size(Vout)));
-                        fprintf('  DEBUG: Processing Iout (class=%s, size=%s)\n', class(Iout), mat2str(size(Iout)));
-                    end
-                    
-                    % Extract data and time - handle timeseries first (most common for Simulink)
                     if isa(Vout, 'timeseries')
                         V_data = Vout.Data;
                         t_data = Vout.Time;
                     elseif isnumeric(Vout) || islogical(Vout)
-                        % Handle Array or Array (2-D) format
                         if ~isvector(Vout) && size(Vout, 2) > 1
-                            % 2-D array: last column is signal data
                             V_data = Vout(:, end);
                         else
-                            % 1-D array or vector
                             V_data = Vout(:);
                         end
                         t_data = simOut.tout;
                     elseif isa(Vout, 'Simulink.SimulationOutput')
-                        % SimulationOutput object - check available properties
                         props = properties(Vout);
                         if ismember('logsout', props) && ~isempty(Vout.logsout)
                             V_data = Vout.logsout.getElement(1).Values.Data;
@@ -313,20 +254,15 @@ for si = 1:numel(scenarios)
                         error('Unrecognized Vout structure');
                     end
                     
-                    % Extract current data - handle timeseries first
                     if isa(Iout, 'timeseries')
                         I_data = Iout.Data;
                     elseif isnumeric(Iout) || islogical(Iout)
-                        % Handle Array or Array (2-D) format
                         if ~isvector(Iout) && size(Iout, 2) > 1
-                            % 2-D array: last column is signal data
                             I_data = Iout(:, end);
                         else
-                            % 1-D array or vector
                             I_data = Iout(:);
                         end
                     elseif isa(Iout, 'Simulink.SimulationOutput')
-                        % SimulationOutput object - check available properties
                         props = properties(Iout);
                         if ismember('logsout', props) && ~isempty(Iout.logsout)
                             I_data = Iout.logsout.getElement(1).Values.Data;
@@ -355,7 +291,6 @@ for si = 1:numel(scenarios)
                         error('Unrecognized Iout structure');
                     end
                     
-                    % Ensure data is numeric and time vector exists
                     if ~isnumeric(V_data) || ~isnumeric(I_data)
                         error('V_data or I_data is not numeric');
                     end
@@ -363,24 +298,21 @@ for si = 1:numel(scenarios)
                         error('t_data is not a valid numeric vector');
                     end
                     
-                    % Ensure all vectors have compatible dimensions
-                    V_data = V_data(:);  % Force column vector
-                    I_data = I_data(:);  % Force column vector
-                    t_data = t_data(:);  % Force column vector
+                    V_data = V_data(:);
+                    I_data = I_data(:);
+                    t_data = t_data(:);
                     
                     if length(t_data) ~= length(V_data) || length(t_data) ~= length(I_data)
                         error('Data length mismatch: t_data(%d), V_data(%d), I_data(%d)', ...
                             length(t_data), length(V_data), length(I_data));
                     end
                     
-                    % Calculate average and RMS values
                     entry.Vavg = mean(V_data);
                     entry.Vrms = sqrt(mean(V_data.^2));
                     entry.Iavg = mean(I_data);
                     entry.Irms = sqrt(mean(I_data.^2));
                     
-                    % Live plotting
-                    if enableLivePlot && mod(ai, 6) == 1  % Plot every 6th alpha (0, 30, 60, 90...)
+                    if enableLivePlot && mod(ai, 6) == 1
                         figure(figHandle);
                         subplot(2,1,1);
                         plot(t_data, V_data, 'b-', 'LineWidth', 1.5);
@@ -410,23 +342,19 @@ for si = 1:numel(scenarios)
                 entry.Irms = NaN;
             end
             
-            % If model has logged signals in logsout or To Workspace variables,
-            % they will appear inside simOut. Save the full simOut for postprocessing.
             modelResults{ai} = entry;
         end
         
-        % store and save per-model result file with scenario name
         fieldName = sprintf('%s_%s', modelBase, scenario.name);
-        results.(fieldName) = modelResults; %#ok<STRNU>
+        results.(fieldName) = modelResults;
         saveFile = fullfile(saveFolder, sprintf('%s_%s_results.mat', modelBase, scenario.name));
         save(saveFile, 'modelResults','scenario','-v7.3');
         fprintf('Saved results to %s\n', saveFile);
         
-        % Display summary statistics
         fprintf('\nSummary for %s - %s:\n', modelName, scenario.name);
         fprintf('  Alpha(deg)  Vavg(V)   Vrms(V)   Iavg(A)   Irms(A)\n');
         fprintf('  -----------------------------------------------\n');
-        for ai = 1:min(5, numel(modelResults))  % Show first 5 alpha values
+        for ai = 1:min(5, numel(modelResults))
             if ~isempty(modelResults{ai}) && isfield(modelResults{ai}, 'Vavg')
                 e = modelResults{ai};
                 fprintf('  %6d     %7.2f   %7.2f   %7.3f   %7.3f\n', ...
@@ -437,14 +365,101 @@ for si = 1:numel(scenarios)
             fprintf('  ... (%d more alpha values)\n', numel(modelResults)-5);
         end
         
-        % close model to keep environment clean
+        if generateGraphs
+            fprintf('\nGenerating graphs for selected alpha values...\n');
+            figFolder = fullfile(saveFolder, '..', '..', 'figures', modelBase, scenario.name);
+            if ~exist(figFolder, 'dir')
+                mkdir(figFolder);
+            end
+            
+            for alpha_val = graphAlphas
+                resultIdx = -1;
+                for ai = 1:numel(modelResults)
+                    if ~isempty(modelResults{ai}) && isfield(modelResults{ai}, 'alpha_deg')
+                        if modelResults{ai}.alpha_deg == alpha_val
+                            resultIdx = ai;
+                            break;
+                        end
+                    end
+                end
+                
+                if resultIdx > 0 && isfield(modelResults{resultIdx}, 'simOut')
+                    result = modelResults{resultIdx};
+                    simOut = result.simOut;
+                    
+                    V_plot = [];
+                    I_plot = [];
+                    t_plot = simOut.tout;
+                    
+                    if isprop(simOut, 'Vout') && isprop(simOut, 'Iout')
+                        VoutData = simOut.Vout;
+                        IoutData = simOut.Iout;
+                        if isa(VoutData, 'timeseries')
+                            V_plot = VoutData.Data;
+                            t_plot = VoutData.Time;
+                        elseif isnumeric(VoutData) && ~isempty(VoutData)
+                            if size(VoutData, 2) > 1
+                                V_plot = VoutData(:, end);
+                            else
+                                V_plot = VoutData(:);
+                            end
+                        end
+                        
+                        if isa(IoutData, 'timeseries')
+                            I_plot = IoutData.Data;
+                        elseif isnumeric(IoutData) && ~isempty(IoutData)
+                            if size(IoutData, 2) > 1
+                                I_plot = IoutData(:, end);
+                            else
+                                I_plot = IoutData(:);
+                            end
+                        end
+                    end
+                    
+                    if ~isempty(V_plot) && ~isempty(I_plot)
+                        fig = figure('Name', sprintf('%s - %s - Alpha=%d', modelBase, scenario.name, alpha_val), ...
+                                     'Position', [100, 100, 1200, 600]);
+                        
+                        subplot(2, 1, 1);
+                        ax1 = gca;
+                        ax1.Toolbar.Visible = 'off';
+                        plot(t_plot, V_plot, 'b-', 'LineWidth', 1.5);
+                        grid on;
+                        xlabel('Time (s)');
+                        ylabel('Voltage (V)');
+                        title(sprintf('%s - %s: Voltage Waveform (\\alpha = %d°)', ...
+                            strrep(modelBase, '_', ' '), strrep(scenario.name, '_', ' '), alpha_val));
+                        
+                        subplot(2, 1, 2);
+                        ax2 = gca;
+                        ax2.Toolbar.Visible = 'off';
+                        plot(t_plot, I_plot, 'r-', 'LineWidth', 1.5);
+                        grid on;
+                        xlabel('Time (s)');
+                        ylabel('Current (A)');
+                        title(sprintf('Current Waveform (\\alpha = %d°)', alpha_val));
+                        
+                        figName = sprintf('%s_%s_alpha_%d', modelBase, scenario.name, alpha_val);
+                        saveas(fig, fullfile(figFolder, [figName '.png']));
+                        saveas(fig, fullfile(figFolder, [figName '.fig']));
+                        fprintf('  Saved graph for alpha=%d to %s\n', alpha_val, figFolder);
+                        close(fig);
+                    else
+                        fprintf('  Warning: No data available for alpha=%d\n', alpha_val);
+                    end
+                else
+                    fprintf('  Warning: Result not found for alpha=%d\n', alpha_val);
+                end
+            end
+        end
+        
         try
             close_system(modelPath,0);
         catch
         end
     end
 end
-% Save aggregated results
+
 save(fullfile(saveFolder,'all_results.mat'),'results','-v7.3');
 fprintf('\nAll sweeps finished. Results in: %s\n', saveFolder);
 fprintf('Load the MAT files and inspect `simOut` fields or logged variables.\n');
