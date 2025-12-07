@@ -1,0 +1,501 @@
+\section{Methodology and Simulation Setup}
+
+\subsection{Simulation Environment}
+
+The load analysis simulations were conducted using MATLAB/Simulink with Simscape Electrical components. This environment provides accurate modeling of power electronic components including thyristors, diodes, transformers, and passive load elements. The simulation approach combines:
+
+\begin{itemize}
+    \item \textbf{Simscape circuit models} for accurate physical behavior of semiconductor devices
+    \item \textbf{MATLAB scripting} for automated parameter sweeps and data analysis
+    \item \textbf{Pulse generators} for precise thyristor gate signal timing and firing angle control
+\end{itemize}
+
+\subsection{Firing Circuit Design}
+
+The thyristor firing circuits are implemented using Simulink Pulse Generator blocks with the following design parameters:
+
+\begin{itemize}
+    \item \textbf{Gate Signal Amplitude:} 10 V (sufficient to trigger thyristor)
+    \item \textbf{Pulse Width:} 50\% of line period (ensuring reliable triggering)
+    \item \textbf{Period:} 20 ms (synchronized to 50 Hz AC supply)
+    \item \textbf{Phase Delay:} Calculated as $t_d = \frac{\alpha}{360°} \times T$ where $T = 1/f$
+\end{itemize}
+
+For full-wave rectifiers, two pulse generators are used with appropriate phase relationships:
+\begin{itemize}
+    \item \textbf{Center-tapped:} Second pulse delayed by $T/2$ (10 ms)
+    \item \textbf{Bridge:} Thyristor pairs triggered with $\pi$ phase shift
+\end{itemize}
+
+\subsection{Automated Sweep Analysis}
+
+The \texttt{load\_analysis\_sweep.m} MATLAB script automates the simulation process across multiple firing angles and load scenarios. The script performs the following operations:
+
+\begin{enumerate}
+    \item \textbf{Model Selection:} Loads specified Simulink models (half-wave, center-tapped, or bridge)
+    \item \textbf{Parameter Configuration:} Iterates through firing angles (0° to 180° in 5° steps) and load scenarios
+    \item \textbf{Simulation Execution:} Runs each configuration for 0.1 seconds (5 complete AC cycles)
+    \item \textbf{Data Extraction:} Captures voltage and current waveforms from To Workspace blocks
+    \item \textbf{Metric Calculation:} Computes $V_{avg}$, $V_{rms}$, $I_{avg}$, $I_{rms}$ for each case
+    \item \textbf{Result Storage:} Saves results to MAT files for post-processing
+    \item \textbf{Graph Generation:} Automatically generates and saves waveform plots for selected $\alpha$ values
+\end{enumerate}
+
+This automated approach ensures consistent and repeatable analysis across all rectifier configurations and operating conditions.
+
+\subsection{Load Scenario Definitions}
+
+Three distinct load scenarios are analyzed to understand rectifier behavior across a spectrum of load characteristics:
+
+\subsubsection{Resistive Only Load}
+
+\begin{itemize}
+    \item $R = 10$ $\Omega$, $L = 1$ $\mu$H (minimal inductance for numerical stability)
+    \item Represents pure resistive loads such as heating elements
+    \item Current instantaneously follows voltage
+    \item No energy storage; discontinuous current at high firing angles
+\end{itemize}
+
+\subsubsection{Resistive-Inductive (R-L) Load}
+
+\begin{itemize}
+    \item $R = 10$ $\Omega$, $L = 50$ mH
+    \item Time constant: $\tau = L/R = 5$ ms (comparable to line period)
+    \item Represents typical motor loads or inductive heating
+    \item Current lags voltage; smoother waveforms
+    \item Extended conduction beyond voltage zero-crossings
+\end{itemize}
+
+\subsubsection{Highly Inductive Load}
+
+\begin{itemize}
+    \item $R = 5$ $\Omega$, $L = 200$ mH
+    \item Time constant: $\tau = L/R = 40$ ms (much larger than line period)
+    \item Represents DC motor armatures, large inductors
+    \item Nearly constant current; continuous conduction
+    \item Enables four-quadrant operation and regenerative braking
+\end{itemize}
+
+\newpage
+
+\section{Simulation Results}
+
+\subsection{Half-Wave Controlled Rectifier}
+
+The half-wave rectifier uses a single thyristor to control current flow during the positive half-cycle of the AC supply.
+
+\subsubsection{Resistive Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/ResistiveLoadVoltageWithoutDiode.jpeg}
+    \caption{Half-wave rectifier output voltage for resistive load without FWD. Discontinuous voltage pulses during positive half-cycles only.}
+    \label{fig:hf_r_vout_nofwd}
+\end{figure}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/ResistiveLoadCurrentWithoutDiode.jpeg}
+    \caption{Half-wave rectifier output current for resistive load without FWD. Discontinuous current pulses during positive half-cycles only.}
+    \label{fig:hf_r_iout_nofwd}
+\end{figure}
+
+\textbf{With Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/VRWithD.jpeg}
+    \caption{Half-wave rectifier output voltage for resistive load with FWD. For resistive loads, the FWD has minimal effect since current naturally goes to zero when voltage is zero.}
+    \label{fig:hf_r_vout_fwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/17.jpeg}
+    \caption{Half-wave rectifier output current for resistive load with FWD. Similar to non-FWD case due to absence of stored energy.}
+    \label{fig:hf_r_iout_fwd}
+\end{figure}
+
+\subsubsection{R-L Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/RL.jpeg}
+    \caption{Half-wave rectifier output voltage for R-L load without FWD. Negative voltage appears as the inductor tries to maintain current after thyristor turn-off.}
+    \label{fig:hf_rl_vout_nofwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/RL2.jpeg}
+    \caption{Half-wave rectifier output current for R-L load without FWD. Current extends beyond $\pi$ due to energy stored in the inductor, creating negative voltage across the load.}
+    \label{fig:hf_rl_iout_nofwd}
+\end{figure}
+
+\textbf{With Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/VRLwithDiode.jpeg}
+    \caption{Half-wave rectifier output voltage for R-L load with FWD. The FWD clamps voltage to near-zero when the inductor would otherwise create negative voltage, improving average output.}
+    \label{fig:hf_rl_vout_fwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IRWithD.jpeg}
+    \caption{Half-wave rectifier output current for RL load with FWD. Similar to non-FWD case due to absence of stored energy.}
+    \label{fig:hf_r_iout_fwd}
+\end{figure}
+
+\subsubsection{Highly Inductive Load}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IHIL.jpeg}
+    \caption{Half-wave rectifier waveforms for highly inductive load. Nearly constant current due to large time constant; continuous conduction with significant average value.}
+    \label{fig:hf_hi_1}
+\end{figure}
+
+\newpage
+
+\subsection{Center-Tapped Full-Wave Controlled Rectifier}
+
+The center-tapped configuration uses two thyristors alternately conducting on opposite half-cycles.
+
+\subsubsection{Resistive Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRND.png}
+    \caption{Center-tapped full-wave rectifier output voltage for resistive load without FWD. Full-wave rectification provides two pulses per cycle, improving average output.}
+    \label{fig:ct_r_vout_nofwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRND.png}
+    \caption{Center-tapped full-wave rectifier output current for thyristor 1 without FWD. Discontinuous current with two pulses per AC cycle.}
+    \label{fig:ct_r_iout_nofwd}
+\end{figure}
+
+\subsubsection{R-L Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRLND.png}
+    \caption{Center-tapped full-wave rectifier output voltage for R-L load without FWD. Smoother waveforms compared to half-wave; reduced negative voltage excursions.}
+    \label{fig:ct_rl_vout_nofwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRLND.png}
+    \caption{Center-tapped full-wave rectifier output current for R-L load for thyristor 1 without FWD. More continuous current than half-wave due to doubled pulse frequency.}
+    \label{fig:ct_rl_iout_nofwd}
+\end{figure}
+
+\textbf{With Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRLWD.png}
+    \caption{Center-tapped full-wave rectifier output voltage for R-L load with FWD. FWD eliminates negative voltage, improving DC output quality.}
+    \label{fig:ct_rl_vout_fwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRLD.png}
+    \caption{Center-tapped full-wave rectifier output current for R-L load for thyristor 1 with FWD. Continuous conduction achieved at moderate firing angles.}
+    \label{fig:ct_rl_iout_fwd}
+\end{figure}
+
+\subsubsection{Highly Inductive Load}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRL.png}
+    \caption{Center-tapped full-wave rectifier for highly inductive load. Nearly constant DC current with excellent continuity and very smooth output with small ripple.}
+    \label{fig:ct_hi}
+\end{figure}
+
+\newpage
+
+\subsection{Bridge Full-Wave Controlled Rectifier}
+
+The bridge configuration uses four thyristors, eliminating the need for a center-tapped transformer.
+
+\subsubsection{Resistive Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VRRWithoutD.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for resistive load without FWD. Similar to center-tapped but with two thyristor drops in series.}
+    \label{fig:bg_r_vout_nofwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRRWithoutD.jpeg}
+    \caption{Bridge full-wave rectifier output current for resistive load without FWD. Discontinuous current with two pulses per AC cycle.}
+    \label{fig:bg_r_iout_nofwd}
+\end{figure}
+
+\textbf{With Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VRRWithD.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for resistive load with FWD. Minimal effect for resistive loads as current naturally goes to zero with voltage.}
+    \label{fig:bg_r_vout_fwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRRWithD.jpeg}
+    \caption{Bridge full-wave rectifier output current for resistive load with FWD.}
+    \label{fig:bg_r_iout_fwd}
+\end{figure}
+
+\subsubsection{R-L Load}
+
+\textbf{Without Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VoltageRLnodiode.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for R-L load without FWD.}
+    \label{fig:bg_rl_vout_nofwd}
+\end{figure}
+
+\textbf{With Free-Wheeling Diode:}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VoltageRLwithdiode.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for R-L load with FWD.}
+    \label{fig:bg_rl_vout_fwd}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRLwithdiode.jpeg}
+    \caption{Bridge full-wave rectifier output current for R-L load with FWD.}
+    \label{fig:bg_rl_iout_fwd}
+\end{figure}
+
+\subsubsection{Highly Inductive Load}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/Highly_inductiveI.jpeg}
+    \caption{Bridge full-wave rectifier current for highly inductive load showing nearly constant DC current with minimal ripple.}
+    \label{fig:bg_hi}
+\end{figure}
+
+\newpage
+
+\section{Analysis and Discussion}
+
+\subsection{Theoretical vs. Simulated Average Output Voltage}
+
+The theoretical average output voltage for controlled rectifiers can be derived from circuit analysis:
+
+\textbf{Half-Wave Rectifier:}
+\begin{equation}
+V_{dc} = \frac{V_m}{2\pi}(1 + \cos\alpha)
+\end{equation}
+
+\textbf{Full-Wave Rectifiers (Center-Tapped and Bridge):}
+\begin{equation}
+V_{dc} = \frac{V_m}{\pi}(1 + \cos\alpha)
+\end{equation}
+
+where $V_m = \sqrt{2} \times 230 = 325.27$ V is the peak supply voltage.
+
+The simulated results closely match theoretical predictions for resistive loads. Small deviations occur due to:
+\begin{itemize}
+    \item Thyristor forward voltage drops (typically 1-2 V)
+    \item Finite switching times
+    \item Circuit parasitics and numerical integration tolerances
+\end{itemize}
+
+For inductive loads, the average voltage can become negative at large firing angles when the inductor maintains current flow through negative portions of the AC waveform.
+
+\subsection{Current Continuity for Inductive Loads}
+
+\textbf{Discontinuous Conduction Mode (DCM):}
+\begin{itemize}
+    \item Occurs with resistive loads and small inductances at high firing angles
+    \item Current drops to zero during each cycle
+    \item Higher harmonic content and RMS current
+    \item Poor power factor
+\end{itemize}
+
+\textbf{Continuous Conduction Mode (CCM):}
+\begin{itemize}
+    \item Achieved with large inductances (L >> R·T)
+    \item Current never reaches zero
+    \item Smoother waveforms with reduced harmonics
+    \item Better utilization of supply
+\end{itemize}
+
+The boundary between DCM and CCM depends on the load time constant ($\tau = L/R$), firing angle, and rectifier topology. Full-wave rectifiers achieve CCM more easily due to doubled pulse frequency (100 Hz vs 50 Hz), reducing current ripple by approximately 50\%.
+
+\subsection{Positive Load Current with Negative Output Voltage}
+
+This phenomenon occurs in inductive loads without free-wheeling diodes, particularly in half-wave rectifiers:
+
+\begin{enumerate}
+    \item \textbf{Energy Storage Phase:} During thyristor conduction, the inductor stores magnetic energy
+    \item \textbf{Thyristor Turn-off:} When supply voltage goes negative, the thyristor naturally commutates
+    \item \textbf{Energy Return Phase:} The inductor acts as a source, trying to maintain current in the same direction
+    \item \textbf{Negative Voltage:} With no return path, the current forces negative voltage across the load
+    \item \textbf{Power Flow:} Energy flows back to the AC source (regenerative operation)
+\end{enumerate}
+
+This operating mode:
+\begin{itemize}
+    \item Reduces net DC voltage delivered to the load
+    \item Can enable regenerative braking in motor drives
+    \item Stresses components with reverse voltage
+    \item Is eliminated by free-wheeling diodes
+\end{itemize}
+
+\subsection{Role of Free-Wheeling Diodes}
+
+Free-wheeling diodes (FWDs) provide a low-impedance return path for inductive load current when thyristors are off:
+
+\textbf{Benefits:}
+\begin{itemize}
+    \item \textbf{Voltage Clamping:} Prevents negative load voltage, increasing average DC output
+    \item \textbf{Current Path:} Allows inductor current to decay through the load resistance
+    \item \textbf{Improved Efficiency:} Reduces power returned to AC source
+    \item \textbf{Smoother Operation:} Eliminates voltage oscillations during commutation
+    \item \textbf{Component Protection:} Limits reverse voltage stress on semiconductors
+\end{itemize}
+
+\textbf{Impact on Different Loads:}
+\begin{itemize}
+    \item \textbf{Resistive:} Minimal effect (no stored energy to circulate)
+    \item \textbf{R-L Load:} Moderate improvement; prevents negative voltage
+    \item \textbf{Highly Inductive:} Dramatic improvement; up to 50\% increase in average voltage for half-wave
+\end{itemize}
+
+\textbf{Circuit Implementation:}
+The FWD is connected in parallel with the load, cathode to positive terminal. It conducts only when load current would otherwise create negative voltage, automatically turning off when thyristors resume conduction.
+
+\subsection{Advantages and Disadvantages of Full-Wave Rectifier Configurations}
+
+\subsubsection{Center-Tapped Full-Wave Rectifier}
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item Only two thyristors required
+    \item Simple gate drive circuits (no isolation needed between thyristors)
+    \item Lower conduction losses (single thyristor drop)
+    \item Better voltage utilization of transformer secondary
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item Requires center-tapped transformer (larger, more expensive)
+    \item Each half of secondary winding used only 50\% of the time
+    \item Higher transformer VA rating required
+    \item PIV across each thyristor is $2V_m$ (vs $V_m$ for bridge)
+\end{itemize}
+
+\subsubsection{Bridge Full-Wave Rectifier}
+
+\textbf{Advantages:}
+\begin{itemize}
+    \item No center-tapped transformer needed (standard transformer or direct connection)
+    \item Better transformer utilization
+    \item Lower PIV per thyristor ($V_m$)
+    \item Can operate from single-phase supply directly
+\end{itemize}
+
+\textbf{Disadvantages:}
+\begin{itemize}
+    \item Four thyristors required (higher component cost)
+    \item Two thyristors in series during conduction (double voltage drop)
+    \item More complex gate drive (may need isolation)
+    \item Higher conduction losses
+\end{itemize}
+
+\subsubsection{Performance Comparison}
+
+\begin{table}[H]
+\centering
+\caption{Comparison of Full-Wave Rectifier Configurations}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Parameter} & \textbf{Center-Tapped} & \textbf{Bridge} \\
+\midrule
+Number of Thyristors & 2 & 4 \\
+Transformer Type & Center-tapped & Standard \\
+Voltage Drop & $1 \times V_t$ & $2 \times V_t$ \\
+PIV per Thyristor & $2V_m$ & $V_m$ \\
+Average Output (ideal) & $\frac{2V_m}{\pi}(1+\cos\alpha)$ & $\frac{2V_m}{\pi}(1+\cos\alpha)$ \\
+Ripple Frequency & $2f$ & $2f$ \\
+Transformer Utilization & Lower & Higher \\
+\bottomrule
+\end{tabular}
+\label{tab:fwr_comparison}
+\end{table}
+
+\textbf{Selection Criteria:}
+\begin{itemize}
+    \item \textbf{Low Power Applications:} Center-tapped preferred for simplicity
+    \item \textbf{High Power Applications:} Bridge preferred despite extra thyristors
+    \item \textbf{Existing Transformer:} Use bridge to avoid center-tap requirement
+    \item \textbf{Efficiency Critical:} Center-tapped has lower conduction losses
+\end{itemize}
+
+\subsection{Effect of Firing Angle on Output Parameters}
+
+The firing angle $\alpha$ has profound effects on rectifier performance:
+
+\textbf{Average Output Voltage:}
+\begin{itemize}
+    \item Maximum at $\alpha = 0°$ (uncontrolled rectification)
+    \item Decreases as $\cos\alpha$ for continuous conduction
+    \item Approaches zero as $\alpha \to 90°$
+    \item Becomes negative for $\alpha > 90°$ with highly inductive loads (inverter mode)
+\end{itemize}
+
+\textbf{RMS Output Voltage:}
+\begin{itemize}
+    \item Decreases more slowly than average voltage
+    \item Significant RMS value even at high firing angles
+    \item Creates increased heating with reduced useful power
+\end{itemize}
+
+\textbf{Power Factor:}
+\begin{itemize}
+    \item Maximum at $\alpha = 0°$
+    \item Degrades significantly as $\alpha$ increases
+    \item Higher harmonic content at large firing angles
+\end{itemize}
+
+\textbf{Current Waveform:}
+\begin{itemize}
+    \item Resistive loads: Current follows voltage, increasingly discontinuous at high $\alpha$
+    \item Inductive loads: Current smoothing increases; may transition from CCM to DCM
+    \item Form factor and crest factor increase at high firing angles
+\end{itemize}
+
+The MATLAB sweep analysis quantifies these relationships across the full firing angle range, providing data for optimal operating point selection based on load requirements and efficiency targets.

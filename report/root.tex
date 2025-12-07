@@ -75,9 +75,13 @@
     \vspace{1cm}
     {\Large Course Project Report\par}
     \vspace{0.5cm}
-    {\large Controlled Rectifiers for Battery Charging\par}
+    {\large Semi-Controlled Rectifiers for Battery Charging\par}
     
-    \vspace{3cm}
+    \vspace{1cm}
+    
+    \includegraphics[width=0.8\textwidth]{cover.png}
+    
+    \vspace{1cm}
     
     {\Large\textbf{Team Members}\par}
     \vspace{0.5cm}
@@ -90,19 +94,21 @@
     }
     
     \vfill
+       \vspace{0.5cm}
     
     {\large\textbf{German International University in Berlin}\par}
     {\large Faculty of Engineering\par}
     
-    \vspace{1cm}
+    \vspace{0.5cm}
     
     {\large\textbf{Instructor:} Dr.-Ing. Moustafa Adly\par}
     
     \vspace{1cm}
     
-    {\large Fall Semester 2025\par}
-    {\large November 25, 2025\par}
-    
+    {\large\textbf{GitHub Repository:}\par}
+    \vspace{0.2cm}
+    {\large\url{https://github.com/Mohammed-Azab/thyristolab}\par}
+
 \end{titlepage}
 
 % Table of Contents
@@ -410,9 +416,6 @@ if savePlots
     end
 end
 
-% Plotting and display code follows...
-% (Abbreviated for space - full implementation includes comprehensive plotting)
-
 end
 \end{lstlisting}
 
@@ -542,9 +545,6 @@ if savePlots
     if ~exist(output_dir, 'dir'), mkdir(output_dir); end
 end
 
-% Plotting code similar to half_wave_charger follows...
-% (Abbreviated for space - includes voltage/current/loss plots)
-
 end
 \end{lstlisting}
 
@@ -659,5 +659,417 @@ legend('Charging Time');
 
 end
 \end{lstlisting}
+
+\newpage
+\section{Load Analysis MATLAB Code}
+
+This section contains the MATLAB implementation for the load analysis (Milestone 2) including parameter sweeps and automated Simulink simulation control.
+
+\subsection{Load Analysis Parameters (params.m)}
+
+\begin{lstlisting}
+% Load Analysis Parameters
+
+% Supply
+Vrms = 230; 
+f = 50;
+alphas_deg = 0:5:180;            
+simTime = 0.1;
+T = 1/f;
+
+% Load scenarios
+scenarios = struct();
+scenarios(1).name = 'resistive_only';
+scenarios(1).R = 10;           % Resistance only (ohms)
+scenarios(1).L = 1e-6;         % Minimal inductance (H)
+
+scenarios(2).name = 'R_L_load';
+scenarios(2).R = 10;           % Resistance (ohms)
+scenarios(2).L = 50e-3;        % Moderate inductance (H)
+
+scenarios(3).name = 'highly_inductive';
+scenarios(3).R = 5;            % Lower resistance (ohms)
+scenarios(3).L = 200e-3;       % High inductance (H)
+
+% Pulse Generator parameters
+pulse_amplitude = 10;           % Gate signal amplitude (V)
+pulse_width = 50;              % Pulse width (% of period)
+pulse_period = 1/f;            % Period based on line frequency (s)
+
+% Model selection: 'all', 'ct', 'bg', 'hf', or cell array {'ct', 'bg'}
+% 'ct' = center_taped, 'bg' = bridge (Full_Wave_Bridge), 'hf' = half_wave
+modelSelection = 'ct';        
+
+% Live plotting option
+enableLivePlot = false;  
+
+% Graph generation option
+generateGraphs = true;   
+graphAlphas = [30, 90, 180];  % Alpha values to plot (degrees)
+
+R = 30;
+L = 0.1;
+
+phase_delay = 0.005;
+phase_delay2 = 0.015;
+\end{lstlisting}
+
+\subsection{Load Analysis Sweep Script (load\_analysis\_sweep.m)}
+
+\begin{lstlisting}[basicstyle=\ttfamily\tiny]
+run params.m
+
+% Close all open Simulink models
+bd = find_system('type', 'block_diagram');
+for i = 1:length(bd)
+    if ~strcmp(bd{i}, 'simulink')
+        try
+            close_system(bd{i}, 0);
+        catch
+        end
+    end
+end
+
+% Setup directories
+saveFolder = fullfile(fileparts(mfilename('fullpath')),'results');
+if ~exist(saveFolder,'dir')
+    mkdir(saveFolder);
+end
+
+scriptDir = fileparts(mfilename('fullpath'));
+slxDir = fullfile(scriptDir,'..','simulink');
+files = dir(fullfile(slxDir,'*.slx'));
+if isempty(files)
+    error('No .slx models found in %s', slxDir);
+end
+
+models = {files.name};
+
+% Filter models based on selection
+if ~strcmp(modelSelection, 'all')
+    modelMap = struct('ct', 'center_taped', 'bg', 'Full_Wave_Bridge', 'hf', 'half_wave');
+    
+    if ischar(modelSelection)
+        if isfield(modelMap, modelSelection)
+            targetName = modelMap.(modelSelection);
+            models = models(contains(lower(models), lower(targetName)));
+        else
+            error('Invalid modelSelection: %s', modelSelection);
+        end
+    elseif iscell(modelSelection)
+        selectedModels = {};
+        for i = 1:length(modelSelection)
+            sel = modelSelection{i};
+            if isfield(modelMap, sel)
+                targetName = modelMap.(sel);
+                selectedModels = [selectedModels; models(contains(lower(models), lower(targetName)))];
+            end
+        end
+        models = unique(selectedModels);
+    end
+end
+
+fprintf('Found %d model(s):\n', numel(models));
+for k=1:numel(models)
+    fprintf(' - %s\n', models{k});
+end
+
+fprintf('\nLoad scenarios:\n');
+for s=1:numel(scenarios)
+    fprintf(' %d. %s: R=%.2f Ohm, L=%.1f mH\n', s, scenarios(s).name, scenarios(s).R, scenarios(s).L*1000);
+end
+
+if enableLivePlot
+    figHandle = figure('Name', 'Live Waveforms', 'NumberTitle', 'off');
+end
+
+results = struct();
+
+% Main sweep loop
+for si = 1:numel(scenarios)
+    scenario = scenarios(si);
+    fprintf('\n========== Scenario %d: %s ==========\n', si, scenario.name);
+    
+    for mi = 1:numel(models)
+        modelName = models{mi};
+        modelPath = fullfile(slxDir, modelName);
+        [~,modelBase] = fileparts(modelName);
+        
+        fprintf('\nRunning model: %s\n', modelName);
+        
+        % Close existing instance if loaded
+        if bdIsLoaded(modelBase)
+            fprintf('  Closing existing model instance...\n');
+            try
+                simStatus = get_param(modelBase, 'SimulationStatus');
+                if ~strcmp(simStatus, 'stopped')
+                    set_param(modelBase, 'SimulationCommand', 'stop');
+                    pause(1);
+                end
+            catch ME
+                warning('Error stopping simulation: %s', ME.message);
+            end
+            
+            try
+                close_system(modelBase, 0);
+            catch ME
+                warning('Could not close model: %s', ME.message);
+            end
+        end
+        
+        load_system(modelPath);
+        modelResults = cell(numel(alphas_deg),1);
+        
+        % Alpha sweep
+        for ai = 1:numel(alphas_deg)
+            alpha_deg = alphas_deg(ai);
+            phase_delay = (alpha_deg/360) * (1/f);
+            phase_delay2 = phase_delay + (1/(2*f));
+            
+            % Assign parameters to base workspace
+            assignin('base','alpha_deg',alpha_deg);
+            assignin('base','phase_delay',phase_delay);
+            assignin('base','f',f);
+            assignin('base','Vrms',Vrms);
+            assignin('base','R',scenario.R);
+            assignin('base','L',scenario.L);
+            assignin('base','pulse_amplitude',pulse_amplitude);
+            assignin('base','pulse_width',pulse_width);
+            assignin('base','pulse_period',pulse_period);
+            
+            evalin('base', 'clear Vout Iout V_data I_data vout iout');
+            
+            fprintf('  alpha = %3d deg ... ', alpha_deg);
+            
+            try
+                simOut = sim(modelBase, 'StopTime', num2str(simTime), ...
+                    'SaveOutput','on', 'SaveTime','on', 'ReturnWorkspaceOutputs','on');
+            catch ME
+                fprintf('FAILED\n');
+                warning('Simulation failed: %s', ME.message);
+                modelResults{ai} = struct('alpha_deg',alpha_deg,'error',ME);
+                continue
+            end
+            
+            fprintf('OK\n');
+            
+            % Store results
+            entry.alpha_deg = alpha_deg;
+            entry.phase_delay = phase_delay;
+            entry.R = scenario.R;
+            entry.L = scenario.L;
+            entry.simOut = simOut;
+            
+            % Extract voltage and current data
+            try
+                V_data = []; I_data = []; t_data = simOut.tout;
+                
+                % Try to get data from simulation output
+                if isprop(simOut, 'Vout') && isprop(simOut, 'Iout')
+                    Vout = simOut.Vout;
+                    Iout = simOut.Iout;
+                    
+                    if isa(Vout, 'timeseries')
+                        V_data = Vout.Data;
+                        t_data = Vout.Time;
+                    elseif isnumeric(Vout)
+                        V_data = Vout(:);
+                    end
+                    
+                    if isa(Iout, 'timeseries')
+                        I_data = Iout.Data;
+                    elseif isnumeric(Iout)
+                        I_data = Iout(:);
+                    end
+                end
+                
+                % Calculate metrics
+                if ~isempty(V_data) && ~isempty(I_data)
+                    entry.Vavg = mean(V_data);
+                    entry.Vrms = sqrt(mean(V_data.^2));
+                    entry.Iavg = mean(I_data);
+                    entry.Irms = sqrt(mean(I_data.^2));
+                    
+                    % Live plotting
+                    if enableLivePlot && mod(ai, 6) == 1
+                        figure(figHandle);
+                        subplot(2,1,1);
+                        plot(t_data, V_data, 'b-', 'LineWidth', 1.5);
+                        xlabel('Time (s)'); ylabel('Voltage (V)');
+                        title(sprintf('%s - %s: alpha=%d deg', modelBase, scenario.name, alpha_deg));
+                        grid on;
+                        
+                        subplot(2,1,2);
+                        plot(t_data, I_data, 'r-', 'LineWidth', 1.5);
+                        xlabel('Time (s)'); ylabel('Current (A)');
+                        title(sprintf('Current at alpha=%d deg', alpha_deg));
+                        grid on;
+                        drawnow;
+                    end
+                else
+                    entry.Vavg = NaN; entry.Vrms = NaN;
+                    entry.Iavg = NaN; entry.Irms = NaN;
+                end
+            catch ME
+                warning('Error extracting data: %s', ME.message);
+                entry.Vavg = NaN; entry.Vrms = NaN;
+                entry.Iavg = NaN; entry.Irms = NaN;
+            end
+            
+            modelResults{ai} = entry;
+        end
+        
+        % Save results
+        fieldName = sprintf('%s_%s', modelBase, scenario.name);
+        results.(fieldName) = modelResults;
+        saveFile = fullfile(saveFolder, sprintf('%s_%s_results.mat', modelBase, scenario.name));
+        save(saveFile, 'modelResults','scenario','-v7.3');
+        fprintf('Saved results to %s\n', saveFile);
+        
+        % Print summary
+        fprintf('\nSummary for %s - %s:\n', modelName, scenario.name);
+        fprintf('  Alpha(deg)  Vavg(V)   Vrms(V)   Iavg(A)   Irms(A)\n');
+        fprintf('  -----------------------------------------------\n');
+        for ai = 1:min(5, numel(modelResults))
+            if ~isempty(modelResults{ai}) && isfield(modelResults{ai}, 'Vavg')
+                e = modelResults{ai};
+                fprintf('  %6d     %7.2f   %7.2f   %7.3f   %7.3f\n', ...
+                    e.alpha_deg, e.Vavg, e.Vrms, e.Iavg, e.Irms);
+            end
+        end
+        
+        % Generate graphs for selected alpha values
+        if generateGraphs
+            fprintf('\nGenerating graphs...\n');
+            figFolder = fullfile(saveFolder, '..', '..', 'figures', modelBase, scenario.name);
+            if ~exist(figFolder, 'dir')
+                mkdir(figFolder);
+            end
+            
+            for alpha_val = graphAlphas
+                resultIdx = -1;
+                for ai = 1:numel(modelResults)
+                    if ~isempty(modelResults{ai}) && modelResults{ai}.alpha_deg == alpha_val
+                        resultIdx = ai;
+                        break;
+                    end
+                end
+                
+                if resultIdx > 0 && isfield(modelResults{resultIdx}, 'simOut')
+                    result = modelResults{resultIdx};
+                    simOut = result.simOut;
+                    
+                    % Extract plot data
+                    if isprop(simOut, 'Vout') && isprop(simOut, 'Iout')
+                        VoutData = simOut.Vout;
+                        IoutData = simOut.Iout;
+                        
+                        if isa(VoutData, 'timeseries')
+                            V_plot = VoutData.Data;
+                            t_plot = VoutData.Time;
+                        else
+                            V_plot = VoutData(:);
+                            t_plot = simOut.tout;
+                        end
+                        
+                        if isa(IoutData, 'timeseries')
+                            I_plot = IoutData.Data;
+                        else
+                            I_plot = IoutData(:);
+                        end
+                        
+                        % Create figure
+                        fig = figure('Position', [100, 100, 1200, 600]);
+                        
+                        subplot(2, 1, 1);
+                        plot(t_plot, V_plot, 'b-', 'LineWidth', 1.5);
+                        grid on;
+                        xlabel('Time (s)'); ylabel('Voltage (V)');
+                        title(sprintf('%s - %s: Voltage (alpha = %d deg)', ...
+                            strrep(modelBase, '_', ' '), strrep(scenario.name, '_', ' '), alpha_val));
+                        
+                        subplot(2, 1, 2);
+                        plot(t_plot, I_plot, 'r-', 'LineWidth', 1.5);
+                        grid on;
+                        xlabel('Time (s)'); ylabel('Current (A)');
+                        title(sprintf('Current (alpha = %d deg)', alpha_val));
+                        
+                        % Save figure
+                        figName = sprintf('%s_%s_alpha_%d', modelBase, scenario.name, alpha_val);
+                        saveas(fig, fullfile(figFolder, [figName '.png']));
+                        saveas(fig, fullfile(figFolder, [figName '.fig']));
+                        fprintf('  Saved graph for alpha=%d\n', alpha_val);
+                        close(fig);
+                    end
+                end
+            end
+        end
+        
+        try
+            close_system(modelPath,0);
+        catch
+        end
+    end
+end
+
+% Save all results
+save(fullfile(saveFolder,'all_results.mat'),'results','-v7.3');
+fprintf('\nAll sweeps finished. Results in: %s\n', saveFolder);
+\end{lstlisting}
+
+\newpage
+\section{Simulink Models}
+
+The following Simulink models were developed for load analysis simulations:
+
+\subsection{Rectifier Configuration Models}
+
+\begin{enumerate}
+    \item \texttt{center\_taped.slx} - Center-tapped full-wave rectifier with thyristor control
+    \item \texttt{Full\_Wave\_Bridge.slx} - Full-wave bridge rectifier with four thyristors
+    \item \texttt{half\_wave.slx} - Half-wave controlled rectifier with single thyristor
+\end{enumerate}
+
+\subsection{Diode Reference Models}
+
+\begin{enumerate}
+    \item \texttt{ct\_diode.slx} - Center-tapped rectifier with diodes (uncontrolled)
+    \item \texttt{fw\_diode.slx} - Full-wave bridge with diodes (uncontrolled)
+    \item \texttt{hf\_diode.slx} - Half-wave rectifier with diode (uncontrolled)
+\end{enumerate}
+
+All Simulink models are located in the \texttt{load\_analysis/simulink/} directory and implement various load scenarios including resistive-only, R-L, and highly inductive loads. The models support automated parameter sweeps through the MATLAB script interface for comprehensive analysis of rectifier performance across different firing angles and load conditions.
+
+\newpage
+\subsection{Simulink/Simscape Circuit Diagrams}
+
+The following figures show the Simscape implementation of the controlled rectifier circuits used in the load analysis simulations.
+
+\subsubsection{Center-Tapped Full-Wave Rectifier}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/CTSIMULINK.png}
+    \caption{Center-tapped full-wave controlled rectifier Simscape model. The circuit uses two thyristors with phase-shifted gate signals to achieve full-wave rectification. A center-tapped transformer provides the dual voltage sources required for this topology.}
+    \label{fig:ct_simulink}
+\end{figure}
+
+\subsubsection{Full-Wave Bridge Rectifier}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/bgSimulink.jpeg}
+    \caption{Full-wave bridge controlled rectifier Simscape model. The circuit employs four thyristors arranged in a bridge configuration, allowing for full-wave rectification without requiring a center-tapped transformer. Gate signals are synchronized to control the firing angles of thyristor pairs.}
+    \label{fig:bg_simulink}
+\end{figure}
+
+\subsubsection{Half-Wave Rectifier}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/hfSimulink.jpeg}
+    \caption{Half-wave controlled rectifier Simscape model. This simplified topology uses a single thyristor to control current flow during the positive half-cycle of the AC input. The circuit demonstrates the basic principles of phase-controlled rectification.}
+    \label{fig:hf_simulink}
+\end{figure}
 
 \end{document}
