@@ -88,34 +88,18 @@ The half-wave rectifier uses a single thyristor to control current flow during t
 
 \subsubsection{Resistive Load}
 
-\textbf{Without Free-Wheeling Diode:}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/Resistive/Vout_no_FWD.png}
-    \caption{Half-wave rectifier output voltage for resistive load without FWD at various firing angles. The output follows the input voltage from $\alpha$ to $\pi$, then drops to zero.}
-    \label{fig:hf_r_vout_nofwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/Resistive/Iout_no_FWD.png}
-    \caption{Half-wave rectifier output current for resistive load without FWD. Current is proportional to voltage and discontinuous for all firing angles.}
-    \label{fig:hf_r_iout_nofwd}
-\end{figure}
-
 \textbf{With Free-Wheeling Diode:}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/Resistive/Vout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/VRWithD.jpeg}
     \caption{Half-wave rectifier output voltage for resistive load with FWD. For resistive loads, the FWD has minimal effect since current naturally goes to zero when voltage is zero.}
     \label{fig:hf_r_vout_fwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/Resistive/Iout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IRWithD.jpeg}
     \caption{Half-wave rectifier output current for resistive load with FWD. Similar to non-FWD case due to absence of stored energy.}
     \label{fig:hf_r_iout_fwd}
 \end{figure}
@@ -126,14 +110,14 @@ The half-wave rectifier uses a single thyristor to control current flow during t
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/RL/Vout_no_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/RL.jpeg}
     \caption{Half-wave rectifier output voltage for R-L load without FWD. Negative voltage appears as the inductor tries to maintain current after thyristor turn-off.}
     \label{fig:hf_rl_vout_nofwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/RL/Iout_no_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/RL2.jpeg}
     \caption{Half-wave rectifier output current for R-L load without FWD. Current extends beyond $\pi$ due to energy stored in the inductor, creating negative voltage across the load.}
     \label{fig:hf_rl_iout_nofwd}
 \end{figure}
@@ -142,50 +126,32 @@ The half-wave rectifier uses a single thyristor to control current flow during t
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/RL/Vout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/VRLwithDiode.jpeg}
     \caption{Half-wave rectifier output voltage for R-L load with FWD. The FWD clamps voltage to near-zero when the inductor would otherwise create negative voltage, improving average output.}
     \label{fig:hf_rl_vout_fwd}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/RL/Iout_with_FWD.png}
-    \caption{Half-wave rectifier output current for R-L load with FWD. Current decays through the FWD path, maintaining positive load current with zero/positive voltage.}
-    \label{fig:hf_rl_iout_fwd}
-\end{figure}
-
 \subsubsection{Highly Inductive Load}
 
-\textbf{Without Free-Wheeling Diode:}
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/HighlyInductive/Vout_no_FWD.png}
-    \caption{Half-wave rectifier output voltage for highly inductive load without FWD. Extended negative voltage period as large inductance maintains current flow.}
-    \label{fig:hf_hi_vout_nofwd}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IHIL.jpeg}
+    \caption{Half-wave rectifier waveforms for highly inductive load. Nearly constant current due to large time constant; continuous conduction with significant average value.}
+    \label{fig:hf_hi_1}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/HighlyInductive/Iout_no_FWD.png}
-    \caption{Half-wave rectifier output current for highly inductive load without FWD. Nearly constant current due to large time constant; continuous conduction with significant average value.}
-    \label{fig:hf_hi_iout_nofwd}
-\end{figure}
-
-\textbf{With Free-Wheeling Diode:}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/HighlyInductive/Vout_with_FWD.png}
-    \caption{Half-wave rectifier output voltage for highly inductive load with FWD. FWD prevents negative voltage, significantly improving average output voltage.}
-    \label{fig:hf_hi_vout_fwd}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IHIL2.jpeg}
+    \caption{Half-wave rectifier for highly inductive load showing extended conduction period.}
+    \label{fig:hf_hi_2}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/HF/HighlyInductive/Iout_with_FWD.png}
-    \caption{Half-wave rectifier output current for highly inductive load with FWD. Continuous current maintained with small ripple; FWD provides return path during off-periods.}
-    \label{fig:hf_hi_iout_fwd}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/HF/IHIL3.jpeg}
+    \caption{Half-wave rectifier for highly inductive load with FWD effect. Continuous current maintained with small ripple.}
+    \label{fig:hf_hi_3}
 \end{figure}
 
 \newpage
@@ -200,32 +166,16 @@ The center-tapped configuration uses two thyristors alternately conducting on op
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/Resistive/Vout_no_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRND.png}
     \caption{Center-tapped full-wave rectifier output voltage for resistive load without FWD. Full-wave rectification provides two pulses per cycle, improving average output.}
     \label{fig:ct_r_vout_nofwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/Resistive/Iout_no_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for resistive load without FWD. Discontinuous current with two pulses per AC cycle.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRND.png}
+    \caption{Center-tapped full-wave rectifier output current for thyristor 1 without FWD. Discontinuous current with two pulses per AC cycle.}
     \label{fig:ct_r_iout_nofwd}
-\end{figure}
-
-\textbf{With Free-Wheeling Diode:}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/Resistive/Vout_with_FWD.png}
-    \caption{Center-tapped full-wave rectifier output voltage for resistive load with FWD. Minimal difference from non-FWD case for resistive loads.}
-    \label{fig:ct_r_vout_fwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/Resistive/Iout_with_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for resistive load with FWD.}
-    \label{fig:ct_r_iout_fwd}
 \end{figure}
 
 \subsubsection{R-L Load}
@@ -234,15 +184,15 @@ The center-tapped configuration uses two thyristors alternately conducting on op
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/RL/Vout_no_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRLND.png}
     \caption{Center-tapped full-wave rectifier output voltage for R-L load without FWD. Smoother waveforms compared to half-wave; reduced negative voltage excursions.}
     \label{fig:ct_rl_vout_nofwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/RL/Iout_no_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for R-L load without FWD. More continuous current than half-wave due to doubled pulse frequency.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRLND.png}
+    \caption{Center-tapped full-wave rectifier output current for R-L load for thyristor 1 without FWD. More continuous current than half-wave due to doubled pulse frequency.}
     \label{fig:ct_rl_iout_nofwd}
 \end{figure}
 
@@ -250,50 +200,25 @@ The center-tapped configuration uses two thyristors alternately conducting on op
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/RL/Vout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/VRLWD.png}
     \caption{Center-tapped full-wave rectifier output voltage for R-L load with FWD. FWD eliminates negative voltage, improving DC output quality.}
     \label{fig:ct_rl_vout_fwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/RL/Iout_with_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for R-L load with FWD. Continuous conduction achieved at moderate firing angles.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRLD.png}
+    \caption{Center-tapped full-wave rectifier output current for R-L load for thyristor 1 with FWD. Continuous conduction achieved at moderate firing angles.}
     \label{fig:ct_rl_iout_fwd}
 \end{figure}
 
 \subsubsection{Highly Inductive Load}
 
-\textbf{Without Free-Wheeling Diode:}
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/HighlyInductive/Vout_no_FWD.png}
-    \caption{Center-tapped full-wave rectifier output voltage for highly inductive load without FWD. Very smooth output with small ripple.}
-    \label{fig:ct_hi_vout_nofwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/HighlyInductive/Iout_no_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for highly inductive load without FWD. Nearly constant DC current with excellent continuity.}
-    \label{fig:ct_hi_iout_nofwd}
-\end{figure}
-
-\textbf{With Free-Wheeling Diode:}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/HighlyInductive/Vout_with_FWD.png}
-    \caption{Center-tapped full-wave rectifier output voltage for highly inductive load with FWD. Maximum average voltage achieved with FWD.}
-    \label{fig:ct_hi_vout_fwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/CT/HighlyInductive/Iout_with_FWD.png}
-    \caption{Center-tapped full-wave rectifier output current for highly inductive load with FWD. Perfectly continuous current with minimal ripple.}
-    \label{fig:ct_hi_iout_fwd}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/CT/IRL.png}
+    \caption{Center-tapped full-wave rectifier for highly inductive load. Nearly constant DC current with excellent continuity and very smooth output with small ripple.}
+    \label{fig:ct_hi}
 \end{figure}
 
 \newpage
@@ -308,15 +233,15 @@ The bridge configuration uses four thyristors, eliminating the need for a center
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/Resistive/Vout_no_FWD.png}
-    \caption{Bridge full-wave rectifier output voltage for resistive load without FWD. Similar to center-tapped but with two thyristor drops.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VRRWithoutD.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for resistive load without FWD. Similar to center-tapped but with two thyristor drops in series.}
     \label{fig:bg_r_vout_nofwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/Resistive/Iout_no_FWD.png}
-    \caption{Bridge full-wave rectifier output current for resistive load without FWD.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRRWithoutD.jpeg}
+    \caption{Bridge full-wave rectifier output current for resistive load without FWD. Discontinuous current with two pulses per AC cycle.}
     \label{fig:bg_r_iout_nofwd}
 \end{figure}
 
@@ -324,14 +249,14 @@ The bridge configuration uses four thyristors, eliminating the need for a center
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/Resistive/Vout_with_FWD.png}
-    \caption{Bridge full-wave rectifier output voltage for resistive load with FWD.}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VRRWithD.jpeg}
+    \caption{Bridge full-wave rectifier output voltage for resistive load with FWD. Minimal effect for resistive loads as current naturally goes to zero with voltage.}
     \label{fig:bg_r_vout_fwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/Resistive/Iout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRRWithD.jpeg}
     \caption{Bridge full-wave rectifier output current for resistive load with FWD.}
     \label{fig:bg_r_iout_fwd}
 \end{figure}
@@ -342,66 +267,34 @@ The bridge configuration uses four thyristors, eliminating the need for a center
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/RL/Vout_no_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VoltageRLnodiode.jpeg}
     \caption{Bridge full-wave rectifier output voltage for R-L load without FWD.}
     \label{fig:bg_rl_vout_nofwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/RL/Iout_no_FWD.png}
-    \caption{Bridge full-wave rectifier output current for R-L load without FWD.}
-    \label{fig:bg_rl_iout_nofwd}
 \end{figure}
 
 \textbf{With Free-Wheeling Diode:}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/RL/Vout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/VoltageRLwithdiode.jpeg}
     \caption{Bridge full-wave rectifier output voltage for R-L load with FWD.}
     \label{fig:bg_rl_vout_fwd}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/RL/Iout_with_FWD.png}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/IRLwithdiode.jpeg}
     \caption{Bridge full-wave rectifier output current for R-L load with FWD.}
     \label{fig:bg_rl_iout_fwd}
 \end{figure}
 
 \subsubsection{Highly Inductive Load}
 
-\textbf{Without Free-Wheeling Diode:}
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/HighlyInductive/Vout_no_FWD.png}
-    \caption{Bridge full-wave rectifier output voltage for highly inductive load without FWD.}
-    \label{fig:bg_hi_vout_nofwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/HighlyInductive/Iout_no_FWD.png}
-    \caption{Bridge full-wave rectifier output current for highly inductive load without FWD.}
-    \label{fig:bg_hi_iout_nofwd}
-\end{figure}
-
-\textbf{With Free-Wheeling Diode:}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/HighlyInductive/Vout_with_FWD.png}
-    \caption{Bridge full-wave rectifier output voltage for highly inductive load with FWD.}
-    \label{fig:bg_hi_vout_fwd}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{Load_Analysis/BG/HighlyInductive/Iout_with_FWD.png}
-    \caption{Bridge full-wave rectifier output current for highly inductive load with FWD.}
-    \label{fig:bg_hi_iout_fwd}
+    \includegraphics[width=0.7\textwidth]{Load_Analysis/BG/Highly_inductiveI.jpeg}
+    \caption{Bridge full-wave rectifier current for highly inductive load showing nearly constant DC current with minimal ripple.}
+    \label{fig:bg_hi}
 \end{figure}
 
 \newpage
