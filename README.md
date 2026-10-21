@@ -273,7 +273,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 **Mohammed Azab**
-- Email: mohammed@azab.io
+- Email: m.3zab@outlook.com
 - GitHub: [@mohammedazab](https://github.com/mohammedazab)
 
 ---
